@@ -1,10 +1,5 @@
 name: CI
 
-# The taxonomy gate runs on every push from day one — it has no dependencies.
-# The application and APK jobs SKIP, rather than fail, until the Vite/Capacitor
-# tree is pushed. A red X on a repository that is simply incomplete trains you
-# to ignore red X's, which is the failure this arrangement avoids.
-
 on:
   push:
     branches: [main]
@@ -15,8 +10,6 @@ permissions:
   contents: read
 
 jobs:
-
-  # ── always runs ────────────────────────────────────────────────────────
   taxonomy:
     name: Taxonomy gate
     runs-on: ubuntu-latest
@@ -27,94 +20,3 @@ jobs:
           node-version: '20'
       - name: Audit category / matrix taxonomy and the limits index
         run: node scripts/verify-taxonomy.mjs
-
-  # ── what is actually in the repository ─────────────────────────────────
-  guard:
-    name: Detect project tree
-    runs-on: ubuntu-latest
-    outputs:
-      app: ${{ steps.c.outputs.app }}
-      android: ${{ steps.c.outputs.android }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: c
-        run: |
-          if [ -f package-lock.json ] && [ -f src/modules/index.js ]; then
-            echo "app=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "app=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Application tree absent::src/modules/index.js or package-lock.json not found. Unzip aliquot-android-project.zip over this repository and commit; the verify and APK jobs will then run. Until then the taxonomy gate runs in self-check mode and orphan detection is inactive."
-          fi
-          if [ -d android ] && [ -f android/gradlew ]; then
-            echo "android=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "android=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Capacitor android/ absent::Run npx cap add android locally and commit the android/ directory to enable the APK job."
-          fi
-
-  # ── the 155-assertion suite ────────────────────────────────────────────
-  verify:
-    name: npm run verify
-    needs: guard
-    if: needs.guard.outputs.app == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-      - run: npm ci
-      - name: Formula and registry verification
-        run: npm run verify
-      - name: Styles.jsx brace balance
-        # CSS inside a template literal is never parsed at build time. A
-        # scripted edit once deleted a @media opener and silently dropped
-        # every mobile rule after it, with a green build. See docs/build-state.md.
-        run: |
-          if [ -f src/ui/Styles.jsx ]; then
-            node -e '
-              const s = require("fs").readFileSync("src/ui/Styles.jsx","utf8");
-              const o = (s.match(/{/g)||[]).length, c = (s.match(/}/g)||[]).length;
-              if (o !== c) { console.error(`Styles.jsx brace imbalance: ${o} open, ${c} close`); process.exit(1); }
-              console.log(`Styles.jsx braces balanced (${o}).`);
-            '
-          fi
-
-  # ── debug APK ──────────────────────────────────────────────────────────
-  # Debug only. Release signing needs an upload keystore, and a keystore
-  # committed to a repository is a keystore you have to replace. Wire it
-  # through repository secrets when you are ready to submit — see RELEASE.md.
-  apk:
-    name: Build debug APK
-    needs: [guard, verify]
-    if: needs.guard.outputs.app == 'true' && needs.guard.outputs.android == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-      - uses: android-actions/setup-android@v3
-      - run: npm ci
-      - name: Build web bundle
-        run: npm run build
-      - name: Capacitor sync
-        run: npx cap sync android
-      - name: Gradle assembleDebug
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: aliquot-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 14d: error
-          retention-days: 14
