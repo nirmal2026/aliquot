@@ -1,0 +1,9 @@
+{
+  "name": "aliquot",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "verify:taxonomy": "node scripts/verify-taxonomy.mjs"
+  }
+}
