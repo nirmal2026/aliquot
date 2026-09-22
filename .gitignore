@@ -1,50 +1,11 @@
-# ── never commit these ────────────────────────────────────────────────────
-# A signing key in git history is a signing key you have to replace, and Play
-# App Signing will not let you replace an upload key without a support round
-# trip. Treat any accidental commit of these as a key compromise.
-*.jks
-*.keystore
-keystore.properties
-key.properties
-google-services.json
-*.p8
-*.p12
-.env
-.env.*
-!.env.example
-
-# Razorpay Key Secret, Play service-account JSON, and anything else with a
-# credential in it. Named explicitly so the intent survives a refactor.
-**/secrets/
-*service-account*.json
-
-# ── node ──────────────────────────────────────────────────────────────────
 node_modules/
-dist/
-dist-ssr/
-.vite/
-*.local
-
-# ── capacitor / android ───────────────────────────────────────────────────
 android/app/build/
 android/build/
 android/.gradle/
 android/local.properties
-android/app/release/
-android/capacitor-cordova-android-plugins/
 *.apk
 *.aab
-.gradle/
-captures/
-
-# ── editor / os ───────────────────────────────────────────────────────────
-.idea/
-.vscode/
-*.iml
-.DS_Store
-Thumbs.db
-
-# ── build artefacts of the single-file builds ─────────────────────────────
-aliquot-offline.html
-aliquot-preview.html
-*.zip
+*.keystore
+*.jks
+keystore.properties
+aliquot.html

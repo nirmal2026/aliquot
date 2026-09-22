@@ -1,9 +1,22 @@
 {
-  "name": "aliquot",
+  "name": "envicron",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "verify:taxonomy": "node scripts/verify-taxonomy.mjs"
+    "verify:registry": "node scripts/verify-registry.mjs",
+    "verify:uncert": "node scripts/verify-uncert.mjs",
+    "verify:decision-noise": "node scripts/verify-decision-noise.mjs",
+    "verify:taxonomy": "node scripts/verify-taxonomy.mjs",
+    "verify": "node scripts/verify-registry.mjs && node scripts/verify-uncert.mjs && node scripts/verify-decision-noise.mjs",
+    "build:html": "node scripts/build-html.mjs && cp aliquot.html www/index.html",
+    "cap:sync": "cap sync android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/android": "^8.5.2"
   }
 }

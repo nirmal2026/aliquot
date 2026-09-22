@@ -1,0 +1,12 @@
+{
+  "appId": "in.envicron.app",
+  "appName": "Envicron",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

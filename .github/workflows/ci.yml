@@ -1,22 +1,19 @@
 name: CI
-
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
-  taxonomy:
-    name: Taxonomy gate
+  registry:
+    name: Registry gate (whole tree)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Audit category / matrix taxonomy and the limits index
-        run: node scripts/verify-taxonomy.mjs
+        with: { node-version: '20' }
+      - run: node scripts/verify-registry.mjs
+      - run: node scripts/verify-uncert.mjs
+      - run: node scripts/verify-decision-noise.mjs

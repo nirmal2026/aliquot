@@ -1,0 +1,81 @@
+name: Build Envicron APK
+
+# Builds the debug APK in GitHub's cloud, where Google's Maven and the
+# Android SDK are reachable — the sandbox that prepares this repo cannot.
+# The signed release AAB is a later step that needs the upload keystore in
+# encrypted secrets; see RELEASE.md. This job produces an installable,
+# side-loadable DEBUG apk named Envicron.
+
+on:
+  workflow_dispatch:        # build on demand from the Actions tab
+  push:
+    tags: ['v*']            # and on every version tag
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: assembleDebug
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify the whole tree before building (2027+139+108 assertions)
+        run: |
+          node scripts/verify-registry.mjs
+          node scripts/verify-uncert.mjs
+          node scripts/verify-decision-noise.mjs
+
+      - name: Rebuild the offline HTML from source and stage it
+        run: node scripts/build-html.mjs && cp aliquot.html www/index.html
+
+      - name: Confirm all 91 routines are in the bundle
+        run: |
+          n=$(grep -oE 'mod:\s*"[a-z0-9]+"' www/index.html | wc -l)
+          echo "routines in bundle: $n"
+          test "$n" -ge 91 || { echo "::error::bundle has $n routines, expected >= 91"; exit 1; }
+
+      - name: JDK 21 (required by Capacitor 8)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install JS deps
+        run: npm install
+
+      - name: Add the Android platform if not present
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: assembleDebug
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Rename artifact to Envicron
+        run: |
+          src=android/app/build/outputs/apk/debug/app-debug.apk
+          test -f "$src" || { echo "::error::APK not produced"; exit 1; }
+          cp "$src" Envicron-debug.apk
+          echo "built $(du -h Envicron-debug.apk | cut -f1)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Envicron-debug-apk
+          path: Envicron-debug.apk
+          if-no-files-found: error
+          retention-days: 30
