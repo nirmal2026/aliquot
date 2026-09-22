@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Envicron">
+  <defs>
+    <linearGradient id="dropg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12a06a"/>
+      <stop offset="1" stop-color="#0b7a53"/>
+    </linearGradient>
+    <clipPath id="dropclip">
+      <path d="M50 30 C50 30 72 58 72 72 a22 22 0 0 1 -44 0 C28 58 50 30 50 30 Z"/>
+    </clipPath>
+  </defs>
+  <!-- burette tip notch -->
+  <path d="M41 12 L47 26 M59 12 L53 26" stroke="#0b7a53" stroke-width="5"
+        stroke-linecap="round" fill="none"/>
+  <!-- drop body -->
+  <path d="M50 30 C50 30 72 58 72 72 a22 22 0 0 1 -44 0 C28 58 50 30 50 30 Z"
+        fill="url(#dropg)"/>
+  <!-- endpoint accent: pink pooled in the lower-right, clipped to the drop -->
+  <g clip-path="url(#dropclip)">
+    <ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/>
+  </g>
+  <!-- specular highlight -->
+  <ellipse cx="43" cy="58" rx="5" ry="8" fill="#ffffff" opacity="0.30"/>
+</svg>

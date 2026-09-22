@@ -108,17 +108,20 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Aliquot</title>
+<title>Envicron</title>
 <style>
 /* Platform fonts only. No web-font fetch, no network call at launch, per the
    project rule. Named families are tried first so self-hosted .woff2 files can
    be dropped in later without touching any other rule. */
 :root{
+  --bg:#ffffff; --panel:#ffffff; --panel2:#f2f4f7; --line:#d8dde5;
+  --ink:#12161c; --sub:#5b6675; --accent:#0b7a53; --bad:#b21f2d;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+[data-theme=dark]{
   --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#2a3240;
-  --ink:#e6ecf4; --dim:#93a1b5; --accent:#5cc8a0; --warn:#e8b04b; --bad:#e8695f;
-  --ok:#5cc8a0;
-  --mono:"JetBrains Mono","Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
-  --sans:Archivo,"Space Grotesk",Roboto,-apple-system,"Segoe UI",system-ui,sans-serif;
+  --ink:#e6ecf4; --sub:#8b97a8; --accent:#2fb183; --bad:#ef6a78;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
@@ -203,7 +206,7 @@ table.rows input,table.rows select{padding:6px;font-size:12.5px;border-radius:6p
 .note{font-size:11px;color:#7d8ea6;margin-top:26px;border-top:1px solid var(--line);padding-top:12px}
 .empty{color:var(--dim);font-size:13px;padding:26px 4px;text-align:center}
 #record{display:none}
-@media print{
+@media print{ #gate,.mtabs,.themebtn,.controls .tabs{display:none!important} 
   body{background:#fff;color:#000}
   .wrap{display:none !important}
   #record{display:block !important;font-family:Georgia,serif;color:#000;padding:0}
@@ -217,17 +220,51 @@ table.rows input,table.rows select{padding:6px;font-size:12.5px;border-radius:6p
   #record .cit{font-size:10px;margin-top:10px;border-top:1px solid #999;padding-top:6px}
   #record .sig{margin-top:26px;font-size:11px}
 }
+
+.logo{display:inline-flex;align-items:center;margin-right:8px;vertical-align:middle}
+header{display:flex;align-items:center;justify-content:space-between}
+.themebtn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+  padding:7px 11px;font-weight:600;font-size:12px;cursor:pointer;width:auto}
+.mtabs{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.mtab{flex:0 0 auto;padding:8px 12px;border:1px solid var(--line);background:var(--panel);
+  color:var(--sub);border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.mtab[aria-selected=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+#gate{position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:14px;padding:24px}
+#gate .box{width:100%;max-width:320px;text-align:center}
+#gate .glogo{display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+#gate input{margin:8px 0}
+#gate .err{color:var(--bad);font-size:12.5px;min-height:16px}
+.saverow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.saverow .full{grid-column:1/3}
+@media(max-width:380px){.saverow{grid-template-columns:1fr}.saverow .full{grid-column:1}}
+
+.savepanel{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:11px;margin:8px 0}
+.savepanel label{font-size:12px;color:var(--sub);display:block;margin-bottom:6px}
 </style>
 </head>
 <body>
+<div id="gate">
+  <div class="box">
+    <div class="glogo"><svg viewBox="0 0 100 100" width="56" height="56" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc2"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg2)"/><g clip-path="url(#dc2)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></div>
+    <h1 style="margin:.2em 0">Envicron</h1>
+    <div class="sub" style="margin-bottom:6px">Sign in to continue · offline</div>
+    <input id="gid" type="text" placeholder="Login ID" autocomplete="username">
+    <input id="gpw" type="password" placeholder="Passcode" autocomplete="current-password" inputmode="numeric">
+    <div class="err" id="gerr"></div>
+    <button id="gbtn" type="button">Unlock</button>
+  </div>
+</div>
 <div class="wrap">
 <header>
-  <h1>Aliquot</h1>
+  <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
   <div class="sub">Environmental &amp; bio-science laboratory calculators · offline · <span id="count"></span></div>
+  <button class="themebtn" id="themebtn" type="button">◐ Theme</button>
 </header>
 
 <div class="controls">
   <input id="q" type="search" placeholder="Search — plume, isokinetic, TCLP, uncertainty, MDL, SO₂…" autocomplete="off">
+  <div class="mtabs" id="mtabs" role="tablist"></div>
   <div class="tabs" id="tabs" role="tablist"></div>
 </div>
 
@@ -449,11 +486,40 @@ ${code}
   function esc(s){ return String(s==null?"":s)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+  function reportText(rt, lr, fname, an, lab){
+    var L = [];
+    L.push((fname||rt.name));
+    L.push(rt.name + "  [" + rt.id + " / " + rt.mod + "]");
+    L.push("Envicron " + BUILD + " · " + new Date().toISOString().replace("T"," ").slice(0,19) + " UTC");
+    if(lab) L.push("Laboratory: " + lab);
+    if(an)  L.push("Analyst: " + an);
+    var samp = state[rt.id].__sample || "";
+    if(samp) L.push("Sample: " + samp);
+    L.push("");
+    L.push("INPUTS");
+    rt.inputs.forEach(function(i){
+      if(kind(i)==="rows"||kind(i)==="table") return;
+      var v = lr.values[key(i)];
+      if(v===undefined||v===""||v===null) return;
+      L.push("  " + i.label + (i.unit?" ("+i.unit+")":"") + ": " + v);
+    });
+    L.push("");
+    L.push("RESULTS");
+    (lr.results||[]).forEach(function(r){
+      if(r.label==null && r.value==null) return;
+      var line = "  " + (r.label||"") + ": " + (r.value!=null?r.value:"") + (r.unit?" "+r.unit:"");
+      L.push(line.replace(/\\s+$/,""));
+    });
+    L.push("");
+    L.push("A calculation aid, not a validated method (ISO/IEC 17025 §7.11.2). Verify against the cited standard.");
+    return L.join("\\n");
+  }
+
   function buildRecord(rt, values, rws, results){
     var h = [], lab = LS.get("aq.lab")||"", an = LS.get("aq.analyst")||"";
     var samp = state[rt.id].__sample || "";
     h.push("<h2>"+esc(rt.name)+"</h2>");
-    h.push('<div class="meta">'+esc(rt.sub)+"<br>Aliquot ${BUILD} · routine <b>"+esc(rt.id)+
+    h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron ${BUILD} · routine <b>"+esc(rt.id)+
            "</b> · module "+esc(rt.mod)+" · tier "+esc(rt.tier)+" · generated "+
            esc(new Date().toISOString().replace("T"," ").slice(0,19))+" UTC</div>");
     h.push("<table><tr><th>Laboratory</th><td>"+esc(lab)+"</td><th>Analyst</th><td>"+esc(an)+
@@ -548,7 +614,7 @@ ${code}
 
       var out = el("div"), bar = el("div","btnrow");
       var go = el("button", null, "Calculate");
-      var rec = el("button","sec","Record / Save as PDF"); rec.disabled = true;
+      var rec = el("button","sec","Save / Share"); rec.disabled = true;
       bar.appendChild(go); bar.appendChild(rec);
       body.appendChild(bar); body.appendChild(out);
 
@@ -579,12 +645,55 @@ ${code}
 
       rec.addEventListener("click", function(){
         var lr = lastRun[rt.id]; if(!lr) return;
-        var lab = prompt("Laboratory (kept on this device)", LS.get("aq.lab")||"");
-        if(lab != null) LS.set("aq.lab", lab);
-        var an = prompt("Analyst (kept on this device)", LS.get("aq.analyst")||"");
-        if(an != null) LS.set("aq.analyst", an);
-        document.getElementById("record").innerHTML = buildRecord(rt, lr.values, lr.rows, lr.results);
-        window.print();
+        // toggle a single inline tile: file name + analyst + lab together
+        var existing = body.querySelector(".savepanel");
+        if(existing){ existing.parentNode.removeChild(existing); return; }
+        var sp = el("div","savepanel");
+        sp.appendChild(el("label",null,"Report details, kept on this device"));
+        var grid = el("div","saverow");
+        var fn = el("input"); fn.type="text"; fn.placeholder="File name";
+        fn.value = LS.get("env.file") || (rt.id + "-" + new Date().toISOString().slice(0,10));
+        var an = el("input"); an.type="text"; an.placeholder="Analyst name";
+        an.value = LS.get("aq.analyst") || "";
+        var lb = el("input"); lb.type="text"; lb.placeholder="Laboratory"; lb.className="full";
+        lb.value = LS.get("aq.lab") || "";
+        grid.appendChild(fn); grid.appendChild(an); grid.appendChild(lb);
+        sp.appendChild(grid);
+        var srow = el("div","btnrow");
+        var pdf = el("button",null,"Save as PDF");
+        var shr = el("button","sec","Share");
+        srow.appendChild(pdf); srow.appendChild(shr);
+        sp.appendChild(srow);
+        out.parentNode.insertBefore(sp, out);
+
+        function persist(){
+          LS.set("env.file", fn.value||"");
+          LS.set("aq.analyst", an.value||"");
+          LS.set("aq.lab", lb.value||"");
+        }
+        pdf.addEventListener("click", function(){
+          persist();
+          document.getElementById("record").innerHTML =
+            buildRecord(rt, lr.values, lr.rows, lr.results);
+          var t = document.title; document.title = fn.value || t;
+          window.print();
+          setTimeout(function(){ document.title = t; }, 500);
+        });
+        shr.addEventListener("click", function(){
+          persist();
+          var txt = reportText(rt, lr, fn.value, an.value, lb.value);
+          if(navigator.share){
+            navigator.share({title: fn.value || rt.name, text: txt})
+              .catch(function(){});
+          } else if(navigator.clipboard){
+            navigator.clipboard.writeText(txt).then(function(){
+              shr.textContent = "Copied ✓";
+              setTimeout(function(){ shr.textContent="Share"; }, 1500);
+            });
+          } else {
+            alert(txt);
+          }
+        });
       });
     }
     return c;
@@ -595,9 +704,28 @@ ${code}
   var tabs = document.getElementById("tabs");
   var qbox = document.getElementById("q");
   var tier = "all";
+  /* ---- 7 matrix pages (module -> matrix) ------------------------------- */
+  var MATRIX = [
+    {id:"all",   name:"All"},
+    {id:"qaqc",  name:"QA / QC",         mods:["qc","conv","sol"]},
+    {id:"water", name:"Water",           mods:["water","plant"]},
+    {id:"air",   name:"Air",             mods:["air","disp"]},
+    {id:"stack", name:"Source Emission", mods:["stack"]},
+    {id:"waste", name:"Waste & Fuel",    mods:["hw","fuel"]},
+    {id:"soil",  name:"Soil & Plant",    mods:["phyto"]},
+    {id:"noise", name:"Noise",           mods:["noise"]}
+  ];
+  var curMatrix = "all";
+  function inMatrix(rt){
+    if(curMatrix==="all") return true;
+    var mx = MATRIX.filter(function(x){return x.id===curMatrix;})[0];
+    return mx && mx.mods && mx.mods.indexOf(rt.mod) >= 0;
+  }
+
   document.getElementById("count").textContent = ROUTINES.length + " routines · " + MODULES.length + " modules";
 
   function matches(rt){
+    if(!inMatrix(rt)) return false;
     if(tier !== "all" && rt.tier !== tier) return false;
     var s = qbox.value.trim().toLowerCase();
     if(!s) return true;
@@ -647,6 +775,20 @@ ${code}
     });
     tabs.appendChild(b);
   });
+
+  var mtabs = document.getElementById("mtabs");
+  MATRIX.forEach(function(t){
+    var b = el("div","mtab", t.name);
+    b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", t.id === curMatrix ? "true":"false");
+    b.addEventListener("click", function(){
+      curMatrix = t.id;
+      Array.prototype.forEach.call(mtabs.children, function(x){ x.setAttribute("aria-selected","false"); });
+      b.setAttribute("aria-selected","true");
+      draw();
+    });
+    mtabs.appendChild(b);
+  });
   qbox.addEventListener("input", draw);
 
   draw();
@@ -656,6 +798,40 @@ ${code}
     n.insertBefore(document.createTextNode(
       "This file was opened from an address that does not allow local storage, so the laboratory and analyst names will not survive a restart. Everything else works normally. "), n.firstChild);
   }
+
+  /* ---- theme toggle (light default, dark optional) --------------------- */
+  (function(){
+    var saved = LS.get("env.theme");
+    if(saved === "dark") document.documentElement.setAttribute("data-theme","dark");
+    var tb = document.getElementById("themebtn");
+    if(tb) tb.addEventListener("click", function(){
+      var dark = document.documentElement.getAttribute("data-theme") === "dark";
+      if(dark){ document.documentElement.removeAttribute("data-theme"); LS.set("env.theme","light"); }
+      else { document.documentElement.setAttribute("data-theme","dark"); LS.set("env.theme","dark"); }
+    });
+  })();
+
+  /* ---- first-login gate (fully offline) -------------------------------- */
+  (function(){
+    var ID = "Envicron", PW = "1234";
+    var gate = document.getElementById("gate");
+    if(!gate) return;
+    // If already unlocked this install, skip.
+    if(LS.get("env.auth") === "1"){ gate.style.display="none"; return; }
+    var gid=document.getElementById("gid"), gpw=document.getElementById("gpw"),
+        gerr=document.getElementById("gerr"), gbtn=document.getElementById("gbtn");
+    function tryUnlock(){
+      if((gid.value||"").trim() === ID && (gpw.value||"") === PW){
+        LS.set("env.auth","1"); gate.style.display="none";
+      } else {
+        gerr.textContent = "Incorrect login ID or passcode.";
+      }
+    }
+    gbtn.addEventListener("click", tryUnlock);
+    gpw.addEventListener("keydown", function(e){ if(e.key==="Enter") tryUnlock(); });
+    gid.focus();
+  })();
+
 })();
 </script>
 </body>

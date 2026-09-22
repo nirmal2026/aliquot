@@ -60,6 +60,22 @@ jobs:
           fi
           npx cap sync android
 
+      - name: Force launcher label to Envicron
+        run: |
+          f=android/app/src/main/res/values/strings.xml
+          if [ -f "$f" ]; then
+            sed -i 's#<string name="app_name">[^<]*</string>#<string name="app_name">Envicron</string>#' "$f"
+            sed -i 's#<string name="title_activity_main">[^<]*</string>#<string name="title_activity_main">Envicron</string>#' "$f"
+            echo "--- strings.xml ---"; cat "$f"
+          fi
+
+      - name: Generate Envicron launcher icons from brand/logo.svg
+        run: |
+          python3 -m pip install --quiet cairosvg pillow
+          python3 scripts/make-icons.py
+          echo "--- generated mipmaps ---"
+          find android/app/src/main/res -name 'ic_launcher*' | sort
+
       - name: assembleDebug
         working-directory: android
         run: |
