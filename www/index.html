@@ -11,12 +11,16 @@
 :root{
   --bg:#ffffff; --panel:#ffffff; --panel2:#f2f4f7; --line:#d8dde5;
   --ink:#12161c; --sub:#5b6675; --accent:#0b7a53; --bad:#b21f2d;
+  --ok:#0b7a53; --warn:#8a5a00; --warnbg:#fff6e6; --keyv:#0b7a53;
+  --rl:#2a3341; --rh:#5b6675; --rline:#e5e9ef; --band:#0b7a53;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
 [data-theme=dark]{
   --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#2a3240;
   --ink:#e6ecf4; --sub:#8b97a8; --accent:#2fb183; --bad:#ef6a78;
+  --ok:#2fb183; --warn:#e8b866; --warnbg:#251d0d; --keyv:#2fb183;
+  --rl:#cfdaea; --rh:#7d8ea6; --rline:#1f2733; --band:#2fb183;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
@@ -54,7 +58,7 @@ h1{margin:0;font-size:21px;letter-spacing:-.01em}
 .chev{color:var(--dim);font-size:13px;flex:none}
 .body{display:none;padding:0 13px 14px;border-top:1px solid var(--line)}
 .card.open .body{display:block}
-.formula{font-family:var(--mono);font-size:11.5px;color:#b9c8dc;background:var(--panel2);
+.formula{font-family:var(--mono);font-size:11.5px;color:var(--sub);background:var(--panel2);
   border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin:12px 0 8px;
   overflow-x:auto;white-space:pre-wrap;word-break:break-word}
 .ref{font-size:11px;color:var(--dim);border-left:2px solid var(--line);padding-left:9px;margin:8px 0 4px}
@@ -64,7 +68,7 @@ input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(-
   color:var(--ink);border-radius:8px;padding:9px 10px;font-size:15px;font-family:var(--sans)}
 textarea{font-family:var(--mono);font-size:12.5px;min-height:84px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#4a6f92}
-.hint{font-size:11px;color:#7d8ea6;margin-top:4px;white-space:pre-line}
+.hint{font-size:11px;color:var(--rh);margin-top:4px;white-space:pre-line}
 button{background:var(--accent);color:#08150f;border:0;border-radius:9px;padding:11px 16px;
   font-size:14.5px;font-weight:600;cursor:pointer;font-family:var(--sans)}
 button.sec{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:500}
@@ -87,17 +91,17 @@ table.rows input,table.rows select{padding:6px;font-size:12.5px;border-radius:6p
   font-size:12px;border-radius:6px}
 .res{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .r{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;padding:8px 0;
-  border-bottom:1px solid #1f2733;align-items:baseline}
-.r .l{font-size:13.5px;color:#cfdaea;flex:1 1 55%;min-width:0}
-.r .v{font-family:var(--mono);font-size:13.5px;text-align:right;flex:0 0 auto;overflow-wrap:anywhere}
-.r .h{font-size:11px;color:#7d8ea6;margin-top:2px;flex:0 0 100%;line-height:1.45}
+  border-bottom:1px solid var(--rline);align-items:baseline}
+.r .l{font-size:13.5px;color:var(--rl);flex:1 1 55%;min-width:0}
+.r .v{font-family:var(--mono);font-size:13.5px;text-align:right;flex:0 0 auto;overflow-wrap:anywhere;color:var(--ink)}
+.r .h{font-size:11px;color:var(--rh);margin-top:2px;flex:0 0 100%;line-height:1.45}
 .r.key .l{color:var(--ink);font-weight:500}
-.r.key .v{font-size:16px;font-weight:600;color:var(--accent)}
+.r.key .v{font-size:16px;font-weight:600;color:var(--keyv)}
 .r.ok .v{color:var(--ok)}
-.r.warn{background:#251d0d;border-radius:6px;padding:8px;margin:4px 0;border-bottom:0}
+.r.warn{background:var(--warnbg);border-radius:6px;padding:8px;margin:4px 0;border-bottom:0}
 .r.warn .l,.r.warn .v{color:var(--warn)}
-.r.sub .l{padding-left:12px;color:#9fb0c6}
-.r .band{padding:3px 11px;border-radius:20px;color:#fff;font-size:12.5px}
+.r.sub .l{padding-left:12px;color:var(--sub)}
+.r .band{padding:3px 11px;border-radius:20px;color:#fff;background:var(--band);font-size:12.5px}
 .note{font-size:11px;color:#7d8ea6;margin-top:26px;border-top:1px solid var(--line);padding-top:12px}
 .empty{color:var(--dim);font-size:13px;padding:26px 4px;text-align:center}
 #record{display:none}
@@ -117,10 +121,19 @@ table.rows input,table.rows select{padding:6px;font-size:12.5px;border-radius:6p
 }
 
 .logo{display:inline-flex;align-items:center;margin-right:8px;vertical-align:middle}
-header{display:flex;align-items:center;justify-content:space-between}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0;display:flex;align-items:center}
+header .sub{flex:1 1 100%;order:3;margin-top:2px}
+.hactions{display:flex;gap:6px;flex:0 0 auto}
 .themebtn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
   padding:7px 11px;font-weight:600;font-size:12px;cursor:pointer;width:auto}
-.mtabs{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.mtabwrap{position:relative}
+.mtabs{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.mtabs::-webkit-scrollbar{height:3px}
+.mtabs::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.mtabfade{position:absolute;top:8px;bottom:2px;width:28px;pointer-events:none;z-index:2}
+.mtabfade.r{right:0;background:linear-gradient(90deg,transparent,var(--bg))}
+.mtabfade.l{left:0;background:linear-gradient(270deg,transparent,var(--bg))}
 .mtab{flex:0 0 auto;padding:8px 12px;border:1px solid var(--line);background:var(--panel);
   color:var(--sub);border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
 .mtab[aria-selected=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -136,9 +149,41 @@ header{display:flex;align-items:center;justify-content:space-between}
 
 .savepanel{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:11px;margin:8px 0}
 .savepanel label{font-size:12px;color:var(--sub);display:block;margin-bottom:6px}
+
+#about{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.5);display:none;
+  align-items:center;justify-content:center;padding:20px}
+#about.open{display:flex}
+#about .card2{background:var(--panel);color:var(--ink);border:1px solid var(--line);
+  border-radius:14px;max-width:440px;width:100%;max-height:82vh;overflow:auto;padding:18px 18px 22px}
+#about h2{margin:.2em 0 .4em;font-size:18px}
+#about p{font-size:12.5px;line-height:1.5;color:var(--sub);margin:.5em 0}
+#about .x{float:right;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:600}
+#about .disc{background:var(--warnbg);border-radius:8px;padding:10px;font-size:11.5px;margin-top:8px}
+
 </style>
 </head>
 <body>
+<div id="about">
+  <div class="card2">
+    <button class="x" id="aboutx" type="button">Close</button>
+    <h2>Envicron</h2>
+    <p><b>Offline environmental laboratory &amp; field calculators.</b> 91 routines across water,
+    air, source emission, soil, waste, noise and QA/QC — each with the standard, method number and
+    clause it rests on. Nothing you enter leaves this device; every calculation runs offline.</p>
+    <p><b>Author:</b> Dr. Nirmal Kumar Sharma. A personal project.</p>
+    <div class="disc">
+    <b>Not an official product.</b> Envicron is not a product of the Central Pollution Control Board,
+    the Ministry of Environment, Forest &amp; Climate Change, or the Bureau of Indian Standards, and
+    no endorsement by any of them is claimed or implied.<br><br>
+    <b>A calculation aid, not a validated method.</b> Under ISO/IEC 17025:2017 &sect;7.11.2, verify
+    each routine against the current edition of the standard cited before relying on any result.
+    Regulatory limits change — confirm against the notification in force. This app contains no
+    internal SOP code, format or unpublished material.
+    </div>
+    <p style="margin-top:10px">Version 1.0 &middot; built from the merged source tree.</p>
+  </div>
+</div>
 <div id="gate">
   <div class="box">
     <div class="glogo"><svg viewBox="0 0 100 100" width="56" height="56" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc2"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg2)"/><g clip-path="url(#dc2)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></div>
@@ -154,12 +199,12 @@ header{display:flex;align-items:center;justify-content:space-between}
 <header>
   <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
   <div class="sub">Environmental &amp; bio-science laboratory calculators · offline · <span id="count"></span></div>
-  <button class="themebtn" id="themebtn" type="button">◐ Theme</button>
+  <div class="hactions"><button class="themebtn" id="aboutbtn" type="button">About</button><button class="themebtn" id="themebtn" type="button">◐ Theme</button></div>
 </header>
 
 <div class="controls">
   <input id="q" type="search" placeholder="Search — plume, isokinetic, TCLP, uncertainty, MDL, SO₂…" autocomplete="off">
-  <div class="mtabs" id="mtabs" role="tablist"></div>
+  <div class="mtabwrap"><span class="mtabfade l" id="mtfl" style="display:none"></span><div class="mtabs" id="mtabs" role="tablist"></div><span class="mtabfade r" id="mtfr"></span></div>
   <div class="tabs" id="tabs" role="tablist"></div>
 </div>
 
@@ -9833,6 +9878,39 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
   var ROUTINES = ALL_ROUTINES;
   var state = {}, rowState = {}, lastRun = {};
 
+  /* Download a text blob as a file. Reliable in a content:// WebView where
+     window.print() and navigator.share are unavailable. Returns true on success. */
+  function downloadFile(name, text, mime){
+    try{
+      var blob = new Blob([text], {type: (mime||"text/plain") + ";charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* Copy without the async clipboard API (which needs a secure origin). */
+  function legacyCopy(text, btn){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.top="-1000px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if(btn){ btn.textContent = ok ? "Copied ✓" : "Select & copy"; setTimeout(function(){ btn.textContent="Share"; }, 1800); }
+      if(!ok){ // last resort: show the text so the user can long-press copy
+        var pre = document.createElement("div"); pre.className="savepanel";
+        pre.textContent = text; pre.style.whiteSpace="pre-wrap"; pre.style.userSelect="text";
+        if(btn && btn.parentNode && btn.parentNode.parentNode) btn.parentNode.parentNode.appendChild(pre);
+      }
+    }catch(e){ if(btn) btn.textContent="Share"; }
+  }
+
+
   /* store.js pattern: probe localStorage inside try/catch, fall back to memory.
      Over content:// the probe itself throws, not just the write. */
   var mem = {};
@@ -10148,8 +10226,29 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
       var out = el("div"), bar = el("div","btnrow");
       var go = el("button", null, "Calculate");
       var rec = el("button","sec","Save / Share"); rec.disabled = true;
-      bar.appendChild(go); bar.appendChild(rec);
+      var rst = el("button","sec","Reset");
+      bar.appendChild(go); bar.appendChild(rec); bar.appendChild(rst);
       body.appendChild(bar); body.appendChild(out);
+
+      rst.addEventListener("click", function(){
+        // clear inputs, row tables, results and any open save panel
+        Object.keys(state[rt.id]).forEach(function(k){
+          if(k.indexOf("__")!==0) state[rt.id][k]="";
+        });
+        rowState[rt.id] = [];
+        lastRun[rt.id] = null;
+        out.innerHTML = "";
+        rec.disabled = true;
+        var sp = body.querySelector(".savepanel"); if(sp) sp.parentNode.removeChild(sp);
+        // reset visible field widgets
+        body.querySelectorAll("input,select,textarea").forEach(function(el2){
+          if(el2.type==="button") return;
+          if(el2.tagName==="SELECT"){ el2.selectedIndex=0; }
+          else el2.value="";
+        });
+        // rebuild any dynamic row tables
+        var evt = new Event("aliquot:reset"); body.dispatchEvent(evt);
+      });
 
       go.addEventListener("click", function(){
         out.innerHTML = "";
@@ -10206,26 +10305,47 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
         }
         pdf.addEventListener("click", function(){
           persist();
-          document.getElementById("record").innerHTML =
-            buildRecord(rt, lr.values, lr.rows, lr.results);
-          var t = document.title; document.title = fn.value || t;
-          window.print();
-          setTimeout(function(){ document.title = t; }, 500);
+          var recHtml = buildRecord(rt, lr.values, lr.rows, lr.results);
+          // Build a fully standalone printable HTML document and hand it to the
+          // system as a download. In a content:// WebView window.print() and the
+          // Web Share API are unavailable, so a Blob download is the reliable path:
+          // the user then opens it and uses the OS "Print > Save as PDF".
+          var doc = "<!doctype html><html><head><meta charset=utf-8>"
+            + "<meta name=viewport content='width=device-width,initial-scale=1'>"
+            + "<title>" + esc(fn.value || rt.name) + "</title><style>"
+            + "body{font-family:Georgia,serif;color:#000;background:#fff;padding:16px;font-size:12px}"
+            + "h2{font-size:16px;margin:0 0 4px} .meta{font-size:11px;color:#333;margin-bottom:10px}"
+            + "table{width:100%;border-collapse:collapse;font-size:11px} "
+            + "th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top} "
+            + "th{background:#f0f0f0} .sig{margin-top:24px;font-size:11px}"
+            + "</style></head><body>" + recHtml + "</body></html>";
+          var ok = downloadFile((fn.value||rt.id) + ".html", doc, "text/html");
+          // also try native print for browsers that support it
+          try {
+            document.getElementById("record").innerHTML = recHtml;
+            var t = document.title; document.title = fn.value || t;
+            if(window.print) window.print();
+            setTimeout(function(){ document.title = t; }, 500);
+          } catch(e){}
+          if(ok){ pdf.textContent = "Saved ✓"; setTimeout(function(){ pdf.textContent="Save as PDF"; }, 1600); }
         });
         shr.addEventListener("click", function(){
           persist();
           var txt = reportText(rt, lr, fn.value, an.value, lb.value);
+          // 1) native share if truly available
           if(navigator.share){
-            navigator.share({title: fn.value || rt.name, text: txt})
-              .catch(function(){});
-          } else if(navigator.clipboard){
-            navigator.clipboard.writeText(txt).then(function(){
-              shr.textContent = "Copied ✓";
-              setTimeout(function(){ shr.textContent="Share"; }, 1500);
-            });
-          } else {
-            alert(txt);
+            navigator.share({title: fn.value || rt.name, text: txt}).catch(function(){});
+            return;
           }
+          // 2) clipboard API if available
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(txt).then(function(){
+              shr.textContent = "Copied ✓"; setTimeout(function(){ shr.textContent="Share"; }, 1600);
+            }, function(){ legacyCopy(txt, shr); });
+            return;
+          }
+          // 3) legacy execCommand copy (works in content:// WebView)
+          legacyCopy(txt, shr);
         });
       });
     }
@@ -10322,6 +10442,15 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
     });
     mtabs.appendChild(b);
   });
+  (function(){
+    var mt=document.getElementById("mtabs"), l=document.getElementById("mtfl"), r=document.getElementById("mtfr");
+    if(!mt) return;
+    function upd(){
+      if(l) l.style.display = mt.scrollLeft > 4 ? "block":"none";
+      if(r) r.style.display = (mt.scrollWidth - mt.clientWidth - mt.scrollLeft) > 4 ? "block":"none";
+    }
+    mt.addEventListener("scroll", upd); window.addEventListener("resize", upd); setTimeout(upd,60);
+  })();
   qbox.addEventListener("input", draw);
 
   draw();
@@ -10336,6 +10465,11 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
   (function(){
     var saved = LS.get("env.theme");
     if(saved === "dark") document.documentElement.setAttribute("data-theme","dark");
+    var ab = document.getElementById("aboutbtn"), am = document.getElementById("about"),
+        ax = document.getElementById("aboutx");
+    if(ab && am){ ab.addEventListener("click", function(){ am.classList.add("open"); }); }
+    if(ax && am){ ax.addEventListener("click", function(){ am.classList.remove("open"); }); }
+    if(am){ am.addEventListener("click", function(e){ if(e.target===am) am.classList.remove("open"); }); }
     var tb = document.getElementById("themebtn");
     if(tb) tb.addEventListener("click", function(){
       var dark = document.documentElement.getAttribute("data-theme") === "dark";
