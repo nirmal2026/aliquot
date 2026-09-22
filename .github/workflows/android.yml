@@ -47,11 +47,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install JS deps
         run: npm install
+
+      - name: Accept Android SDK licenses (runner has the SDK preinstalled)
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
       - name: Add the Android platform if not present
         run: |
@@ -64,7 +64,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon --stacktrace assembleDebug
 
       - name: Rename artifact to Envicron
         run: |
