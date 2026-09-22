@@ -156,7 +156,9 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 #about .card2{background:var(--panel);color:var(--ink);border:1px solid var(--line);
   border-radius:14px;max-width:440px;width:100%;max-height:82vh;overflow:auto;padding:18px 18px 22px}
 #about h2{margin:.2em 0 .4em;font-size:18px}
-#about p{font-size:12.5px;line-height:1.5;color:var(--sub);margin:.5em 0}
+#about p{font-size:13px;line-height:1.55;color:var(--ink);margin:.6em 0}
+#about p.lead{font-size:15px;color:var(--ink);margin:.2em 0 .4em}
+#about .disc p{color:var(--ink)}
 #about .x{float:right;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
   border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:600}
 #about .disc{background:var(--warnbg);border-radius:8px;padding:10px;font-size:11.5px;margin-top:8px}
@@ -168,20 +170,33 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
   <div class="card2">
     <button class="x" id="aboutx" type="button">Close</button>
     <h2>Envicron</h2>
-    <p><b>Offline environmental laboratory &amp; field calculators.</b> 91 routines across water,
-    air, source emission, soil, waste, noise and QA/QC — each with the standard, method number and
-    clause it rests on. Nothing you enter leaves this device; every calculation runs offline.</p>
+    <p class="lead"><b>Offline Environmental Laboratory &amp; Field Calculator.</b></p>
+    <p>Envicron brings together 91 calculation routines used across environmental and
+    bio-science laboratory work — spanning water and wastewater, ambient air, source
+    (stack) emission, soil and sediment, hazardous waste and fuel, noise, and the
+    quality-assurance and quality-control that underpin them all. Each routine states the
+    standard, method number and clause it rests on, shows the formula it applies, validates
+    every input against its permitted range, and reports the result to the correct number of
+    significant figures with its citation.</p>
+    <p>The application is built to work entirely offline. No calculation requires a network
+    connection, and nothing you enter — sample data, analyst name or laboratory name —
+    ever leaves your device. Reports you save or share are generated locally on the phone.</p>
+    <p>It is designed for practising analysts, laboratory chemists, field-monitoring teams
+    and students who need a fast, traceable calculation at the bench or in the field, with the
+    governing standard always in view.</p>
     <p><b>Author:</b> Dr. Nirmal Kumar Sharma. A personal project.</p>
     <div class="disc">
-    <b>Not an official product.</b> Envicron is not a product of the Central Pollution Control Board,
-    the Ministry of Environment, Forest &amp; Climate Change, or the Bureau of Indian Standards, and
-    no endorsement by any of them is claimed or implied.<br><br>
-    <b>A calculation aid, not a validated method.</b> Under ISO/IEC 17025:2017 &sect;7.11.2, verify
-    each routine against the current edition of the standard cited before relying on any result.
-    Regulatory limits change — confirm against the notification in force. This app contains no
-    internal SOP code, format or unpublished material.
+    <p style="margin:0 0 8px"><b>Not an official product.</b> Envicron is an independent personal
+    project. It is not issued, endorsed or approved by any government department, regulatory body
+    or standards organisation, and no such endorsement is claimed or implied. It contains no
+    internal procedure code, official format or unpublished material.</p>
+    <p style="margin:0"><b>A calculation aid, not a validated method.</b> Under ISO/IEC 17025:2017
+    &sect;7.11.2, any software used to produce reported results must be verified before use. Check
+    each routine against the current edition of the standard it cites before relying on it, and
+    confirm every regulatory limit against the notification in force — limits change over time.
+    Results are the user&rsquo;s responsibility.</p>
     </div>
-    <p style="margin-top:10px">Version 1.0 &middot; built from the merged source tree.</p>
+    <p style="margin-top:10px;color:var(--sub);font-size:11.5px">Version 1.0</p>
   </div>
 </div>
 <div id="gate">
@@ -198,7 +213,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div class="wrap">
 <header>
   <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
-  <div class="sub">Environmental &amp; bio-science laboratory calculators · offline · <span id="count"></span></div>
+  <div class="sub">Offline environmental laboratory &amp; field calculators · <span id="count"></span></div>
   <div class="hactions"><button class="themebtn" id="aboutbtn" type="button">About</button><button class="themebtn" id="themebtn" type="button">◐ Theme</button></div>
 </header>
 
@@ -9910,6 +9925,71 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
     }catch(e){ if(btn) btn.textContent="Share"; }
   }
 
+  /* ---- Capacitor-aware save & share ------------------------------------
+     In the packaged Android app window.Capacitor.Plugins gives us the native
+     Filesystem (writes a real file the user can open) and Share (Android share
+     sheet). In a plain browser we fall back to Blob download / Web Share /
+     clipboard. Each path degrades to the on-screen text so nothing silently
+     fails. ---------------------------------------------------------------- */
+  function cap(){ return (window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : null; }
+  function flash(btn,msg,back){ if(!btn) return; var o=btn.textContent; btn.textContent=msg;
+    setTimeout(function(){ btn.textContent=back||o; }, 1700); }
+
+  function showText(txt){
+    // last-resort visible, selectable copy of the report
+    var m=document.getElementById("about");
+    var pre=document.createElement("div"); pre.className="savepanel";
+    pre.style.whiteSpace="pre-wrap"; pre.style.userSelect="text"; pre.textContent=txt;
+    var host=document.querySelector(".savepanel"); if(host&&host.parentNode) host.parentNode.appendChild(pre);
+  }
+
+  function saveReport(name, htmlDoc, txt, btn){
+    var P=cap();
+    if(P && P.Filesystem){
+      // write .html into Documents, then offer to open/share it
+      P.Filesystem.writeFile({
+        path: name + ".html", data: htmlDoc, directory: "CACHE", encoding: "utf8", recursive:true
+      }).then(function(res){
+        flash(btn,"Saved ✓","Save as PDF");
+        // try to open the saved file so the user can Print > Save as PDF
+        if(P.FileOpener && res && res.uri){
+          P.FileOpener.open({ filePath: res.uri, contentType: "text/html" }).catch(function(){});
+        } else if(P.Share && res && res.uri){
+          P.Share.share({ title:name, url:res.uri }).catch(function(){});
+        }
+      }).catch(function(e){
+        // filesystem denied -> share the text instead
+        shareReport(name, txt, btn);
+      });
+      return;
+    }
+    // browser: blob download
+    if(downloadFile(name + ".html", htmlDoc, "text/html")){ flash(btn,"Saved ✓","Save as PDF");
+      try{ document.getElementById("record").innerHTML=htmlDoc; if(window.print) window.print(); }catch(e){}
+      return; }
+    showText(txt);
+  }
+
+  function shareReport(name, txt, btn){
+    var P=cap();
+    if(P && P.Share){
+      P.Share.share({ title:name, text:txt, dialogTitle:"Share report" })
+        .then(function(){}).catch(function(){ copyText(txt, btn); });
+      return;
+    }
+    if(navigator.share){ navigator.share({title:name, text:txt}).catch(function(){ copyText(txt,btn); }); return; }
+    copyText(txt, btn);
+  }
+
+  function copyText(txt, btn){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ flash(btn,"Copied ✓","Share"); },
+        function(){ legacyCopy(txt,btn); });
+      return;
+    }
+    legacyCopy(txt, btn);
+  }
+
 
   /* store.js pattern: probe localStorage inside try/catch, fall back to memory.
      Over content:// the probe itself throws, not just the write. */
@@ -10306,11 +10386,7 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
         pdf.addEventListener("click", function(){
           persist();
           var recHtml = buildRecord(rt, lr.values, lr.rows, lr.results);
-          // Build a fully standalone printable HTML document and hand it to the
-          // system as a download. In a content:// WebView window.print() and the
-          // Web Share API are unavailable, so a Blob download is the reliable path:
-          // the user then opens it and uses the OS "Print > Save as PDF".
-          var doc = "<!doctype html><html><head><meta charset=utf-8>"
+          var htmlDoc = "<!doctype html><html><head><meta charset=utf-8>"
             + "<meta name=viewport content='width=device-width,initial-scale=1'>"
             + "<title>" + esc(fn.value || rt.name) + "</title><style>"
             + "body{font-family:Georgia,serif;color:#000;background:#fff;padding:16px;font-size:12px}"
@@ -10319,33 +10395,13 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
             + "th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top} "
             + "th{background:#f0f0f0} .sig{margin-top:24px;font-size:11px}"
             + "</style></head><body>" + recHtml + "</body></html>";
-          var ok = downloadFile((fn.value||rt.id) + ".html", doc, "text/html");
-          // also try native print for browsers that support it
-          try {
-            document.getElementById("record").innerHTML = recHtml;
-            var t = document.title; document.title = fn.value || t;
-            if(window.print) window.print();
-            setTimeout(function(){ document.title = t; }, 500);
-          } catch(e){}
-          if(ok){ pdf.textContent = "Saved ✓"; setTimeout(function(){ pdf.textContent="Save as PDF"; }, 1600); }
+          var txt = reportText(rt, lr, fn.value, an.value, lb.value);
+          saveReport((fn.value||rt.id), htmlDoc, txt, pdf);
         });
         shr.addEventListener("click", function(){
           persist();
           var txt = reportText(rt, lr, fn.value, an.value, lb.value);
-          // 1) native share if truly available
-          if(navigator.share){
-            navigator.share({title: fn.value || rt.name, text: txt}).catch(function(){});
-            return;
-          }
-          // 2) clipboard API if available
-          if(navigator.clipboard && navigator.clipboard.writeText){
-            navigator.clipboard.writeText(txt).then(function(){
-              shr.textContent = "Copied ✓"; setTimeout(function(){ shr.textContent="Share"; }, 1600);
-            }, function(){ legacyCopy(txt, shr); });
-            return;
-          }
-          // 3) legacy execCommand copy (works in content:// WebView)
-          legacyCopy(txt, shr);
+          shareReport((fn.value||rt.name), txt, shr);
         });
       });
     }
