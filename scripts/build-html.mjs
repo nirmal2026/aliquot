@@ -104,6 +104,8 @@ const code =
   `var ALL_ROUTINES = [].concat(${nsName("src/modules/base.js")}.__default, ${nsName("src/modules/additions.js")}.__default, ${nsName("src/modules/plant.js")}.__default, ${nsName("src/modules/water-is10500.js")}.__default, ${nsName("src/modules/hwm2016.js")}.__default, ${nsName("src/modules/phyto.js")}.__default, ${nsName("src/modules/qc-uncert.js")}.__default, ${nsName("src/modules/decision.js")}.__default, ${nsName("src/modules/noise.js")}.__default);
 `;
 
+const JSPDF = readFileSync(join(root, "vendor/jspdf.umd.min.js"), "utf8").split("</script>").join("<\\/scr"+"ipt>");
+
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -345,6 +347,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 
 <div id="record"></div>
 
+<script>/*__JSPDF__*/</script>
 <script>
 ${code}
 
@@ -687,11 +690,85 @@ ${code}
   function esc(s){ return String(s==null?"":s)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+  function localStamp(){
+    // Device local time (the phone's timezone, e.g. IST). Format: YYYY-MM-DD HH:MM:SS TZ.
+    var d = new Date();
+    function p(n){ return (n<10?"0":"")+n; }
+    var s = d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "
+          + p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+    // timezone label from the device
+    var tz = "";
+    try{ tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; }catch(e){}
+    var off = -d.getTimezoneOffset(); // minutes east of UTC
+    var sign = off>=0?"+":"-"; off=Math.abs(off);
+    var gmt = "UTC"+sign+p(Math.floor(off/60))+":"+p(off%60);
+    return s + " (" + (tz?tz+", ":"") + gmt + ")";
+  }
+  function localDateOnly(){
+    var d=new Date(); function p(n){return (n<10?"0":"")+n;}
+    return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+  }
+
+  /* Build the report as a REAL PDF using jsPDF (inlined, offline). Returns a
+     Blob. No native plugin involved in making the PDF — only in sharing it. */
+  function makePdf(rt, lr, fname, an, lab){
+    var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if(!jsPDFctor) return null;
+    var doc = new jsPDFctor({ unit:"pt", format:"a4" });
+    var M=40, W=515, y=54, LH=14;
+    function line(){ doc.setDrawColor(150); doc.line(M,y,M+W,y); y+=10; }
+    function wrap(txt, size, bold, indent){
+      doc.setFontSize(size||10); doc.setFont("helvetica", bold?"bold":"normal");
+      var x=M+(indent||0);
+      var parts=doc.splitTextToSize(String(txt), W-(indent||0));
+      for(var i=0;i<parts.length;i++){ if(y>800){doc.addPage();y=54;} doc.text(parts[i], x, y); y+=LH; }
+    }
+    function kv(k,v){
+      doc.setFontSize(10);
+      doc.setFont("helvetica","bold"); if(y>800){doc.addPage();y=54;} doc.text(String(k), M, y);
+      doc.setFont("helvetica","normal"); doc.text(String(v==null?"":v), M+150, y); y+=LH;
+    }
+    // Title
+    wrap(rt.name, 15, true); y+=2;
+    doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(90);
+    wrap("Envicron "+BUILD+" \u00b7 "+rt.id+" / "+rt.mod+" \u00b7 "+localStamp(), 9);
+    doc.setTextColor(0); y+=4; line();
+    // Header block
+    if(lab) kv("Laboratory", lab);
+    if(an)  kv("Analyst", an);
+    var samp = (state[rt.id]&&state[rt.id].__sample)||"";
+    if(samp) kv("Sample reference", samp);
+    y+=4;
+    // Inputs
+    wrap("Inputs as entered", 12, true); y+=2;
+    rt.inputs.forEach(function(i){
+      if(kind(i)==="rows"||kind(i)==="table") return;
+      var v=lr.values[key(i)]; if(v===undefined||v===""||v===null) return;
+      kv("  "+i.label+(i.unit?" ("+i.unit+")":""), v);
+    });
+    y+=6;
+    // Results
+    wrap("Result", 12, true); y+=2;
+    (lr.results||[]).forEach(function(r){
+      if(r.label==null && r.value==null) return;
+      kv("  "+(r.label||""), (r.value!=null?r.value:"")+(r.unit?" "+r.unit:""));
+    });
+    y+=8; line();
+    doc.setFontSize(9); doc.setTextColor(70);
+    wrap("A calculation aid, not a validated method. ISO/IEC 17025 \u00a77.11.2 applies: verify before use. "
+       + "A personal project \u2014 not a product of, and not endorsed by, any organisation or employer. "
+       + "Verdicts are against limits or criteria selected or entered by the user.", 9);
+    doc.setTextColor(0); y+=16;
+    wrap("Calculated by ______________    Checked by ______________    Date __________", 10);
+    return doc.output("blob");
+  }
+
+
   function reportText(rt, lr, fname, an, lab){
     var L = [];
     L.push((fname||rt.name));
     L.push(rt.name + "  [" + rt.id + " / " + rt.mod + "]");
-    L.push("Envicron " + BUILD + " · " + new Date().toISOString().replace("T"," ").slice(0,19) + " UTC");
+    L.push("Envicron " + BUILD + " · " + localStamp());
     if(lab) L.push("Laboratory: " + lab);
     if(an)  L.push("Analyst: " + an);
     var samp = state[rt.id].__sample || "";
@@ -722,7 +799,7 @@ ${code}
     h.push("<h2>"+esc(rt.name)+"</h2>");
     h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron " + BUILD + " · routine <b>"+esc(rt.id)+
            "</b> · module "+esc(rt.mod)+" · tier "+esc(rt.tier)+" · generated "+
-           esc(new Date().toISOString().replace("T"," ").slice(0,19))+" UTC</div>");
+           esc(localStamp())+"</div>");
     h.push("<table><tr><th>Laboratory</th><td>"+esc(lab)+"</td><th>Analyst</th><td>"+esc(an)+
            "</td></tr><tr><th>Sample reference</th><td colspan=3>"+esc(samp)+"</td></tr></table><br>");
 
@@ -874,7 +951,7 @@ ${code}
         sp.appendChild(el("label",null,"Report details, kept on this device"));
         var grid = el("div","saverow");
         var fn = el("input"); fn.type="text"; fn.placeholder="File name";
-        fn.value = LS.get("env.file") || (rt.id + "-" + new Date().toISOString().slice(0,10));
+        fn.value = LS.get("env.file") || (rt.id + "-" + localDateOnly());
         var an = el("input"); an.type="text"; an.placeholder="Analyst name";
         an.value = LS.get("aq.analyst") || "";
         var lb = el("input"); lb.type="text"; lb.placeholder="Laboratory"; lb.className="full";
@@ -882,7 +959,7 @@ ${code}
         grid.appendChild(fn); grid.appendChild(an); grid.appendChild(lb);
         sp.appendChild(grid);
         var srow = el("div","btnrow");
-        var pdf = el("button",null,"Print / Save as PDF");
+        var pdf = el("button",null,"Save as PDF");
         var shr = el("button","sec","Share");
         srow.appendChild(pdf); srow.appendChild(shr);
         sp.appendChild(srow);
@@ -899,38 +976,40 @@ ${code}
         }
         pdf.addEventListener("click", function(){
           persist();
-          var recHtml = buildRecord(rt, lr.values, lr.rows, lr.results);
-          // Wrap the report in a standalone, print-styled HTML document.
-          var doc = "<!doctype html><html><head><meta charset=utf-8><style>"
-            + "body{font-family:Georgia,serif;color:#000;background:#fff;margin:0;padding:14px;font-size:12px}"
-            + "h2{font-size:16px;margin:0 0 3px} .meta{font-size:11px;color:#333;margin-bottom:10px}"
-            + "table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed} "
-            + "th,td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top;word-break:break-word} "
-            + "th{background:#eee} .cit{font-size:10px;margin-top:10px;border-top:1px solid #999;padding-top:6px} "
-            + ".sig{margin-top:22px;font-size:11px}"
-            + "</style></head><body>" + recHtml + "</body></html>";
+          var blob;
+          try{ blob = makePdf(rt, lr, fn.value, an.value, lb.value); }
+          catch(e){ setStatus("PDF build failed: "+(e&&e.message||e), true); return; }
+          if(!blob){ setStatus("PDF engine not loaded.", true); return; }
+          var fname = (fn.value || rt.id) + ".pdf";
 
           if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()){
-            var Pr = plugin("Printer");
-            if(Pr && Pr.print){
-              setStatus("Opening the print dialog\u2026 choose \u201cSave as PDF\u201d or a printer.");
-              Pr.print({ content: doc, name: (fn.value || rt.id) })
-                .then(function(){ setStatus("Print dialog closed."); flash(pdf,"\u2713","Print / Save as PDF"); })
-                .catch(function(e){ setStatus("Print failed: " + (e && (e.message||e) || e) + ". Use Share \u2192 print instead.", true); });
-              return;
-            }
-            // Printer plugin not present in this build — tell the user plainly.
-            setStatus("Print plugin not found in this build. Use Share \u2192 your printer or \u201cSave to Files\u201d instead.", true);
+            var Fs = plugin("Filesystem"), Sh = plugin("Share");
+            if(!Fs || !Sh){ setStatus("File/Share plugin missing in this build.", true); return; }
+            setStatus("Preparing PDF\u2026");
+            var reader = new FileReader();
+            reader.onloadend = function(){
+              var b64 = String(reader.result).split(",")[1];  // strip data: prefix
+              Fs.writeFile({ path: fname, data: b64, directory: "CACHE" })
+                .then(function(){ return Fs.getUri({ path: fname, directory: "CACHE" }); })
+                .then(function(u){
+                  return Sh.share({ title: fname, files: [u.uri], dialogTitle: "Save as PDF or share" });
+                })
+                .then(function(){ setStatus("Choose \u201cSave to Files\u201d for a PDF, or share."); flash(pdf,"\u2713","Save as PDF"); })
+                .catch(function(e){ setStatus("Save failed: "+(e&&(e.message||e)||e), true); });
+            };
+            reader.onerror = function(){ setStatus("Could not read the generated PDF.", true); };
+            reader.readAsDataURL(blob);
             return;
           }
 
-          // Browser (desktop preview): the built-in print dialog works here.
+          // Browser: download the real .pdf
           try{
-            document.getElementById("record").innerHTML = recHtml;
-            var t = document.title; document.title = (fn.value || rt.name);
-            if(window.print){ window.print(); setStatus("Opening the print dialog\u2026 choose \u201cSave as PDF\u201d."); }
-            setTimeout(function(){ document.title = t; }, 800);
-          }catch(e){ setStatus("Could not print: " + (e && e.message || e), true); }
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a"); a.href=url; a.download=fname;
+            document.body.appendChild(a); a.click();
+            setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+            setStatus("PDF downloaded."); flash(pdf,"\u2713","Save as PDF");
+          }catch(e){ setStatus("Download failed: "+(e&&e.message||e), true); }
         });
         shr.addEventListener("click", function(){
           persist();
@@ -1095,8 +1174,10 @@ ${code}
 </html>
 `;
 
-writeFileSync(join(root, "aliquot.html"), html, "utf8");
-console.log(`  wrote aliquot.html  ${(html.length / 1024).toFixed(1)} KB`);
+const htmlFinal = html.replace("/*__JSPDF__*/", JSPDF);
+
+writeFileSync(join(root, "aliquot.html"), htmlFinal, "utf8");
+console.log(`  wrote aliquot.html  ${(htmlFinal.length / 1024).toFixed(1)} KB`);
 
 /* Guards that matter for this project, checked at build time. */
 const problems = [];
