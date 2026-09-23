@@ -708,7 +708,24 @@ ${code}
     var d=new Date(); function p(n){return (n<10?"0":"")+n;}
     return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
   }
-
+  // Turn a calculation display name into a safe file name.
+  // "LOD & LOQ" -> "LOD_LOQ"; "BCF, BAF & TF" -> "BCF_BAF_TF".
+  function safeName(name){
+    var t = String(name||"");
+    // characters illegal or awkward in file names, by char code (no escaping traps):
+    // 47 / , 92 \\ , 58 : , 42 * , 63 ? , 34 " , 60 < , 62 > , 124 | , 44 , , 38 &
+    var bad = [47,92,58,42,63,34,60,62,124,44,38];
+    var o="";
+    for(var i=0;i<t.length;i++){
+      var code=t.charCodeAt(i);
+      o += (bad.indexOf(code)>=0 || code<32) ? " " : t.charAt(i);
+    }
+    // collapse whitespace runs to a single underscore, trim
+    var parts=o.split(/\\s+/).filter(function(x){return x.length;});
+    return parts.join("_") || "report";
+  }
+  /* Build the report as a REAL PDF using jsPDF (inlined, offline). Returns a
+     Blob. No native plugin involved in making the PDF — only in sharing it. */
   function pdfSafe(t){
     if(t==null) return "";
     t=String(t)
@@ -722,8 +739,6 @@ ${code}
     var o=""; for(var i=0;i<t.length;i++){ o += (t.charCodeAt(i) < 256 ? t.charAt(i) : "?"); }
     return o;
   }
-    /* Build the report as a REAL PDF using jsPDF (inlined, offline). Returns a
-     Blob. No native plugin involved in making the PDF — only in sharing it. */
   function makePdf(rt, lr, fname, an, lab){
     var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
     if(!jsPDFctor) return null;
@@ -978,7 +993,7 @@ ${code}
         sp.appendChild(el("label",null,"Report details, kept on this device"));
         var grid = el("div","saverow");
         var fn = el("input"); fn.type="text"; fn.placeholder="File name";
-        fn.value = LS.get("env.file") || (rt.id + "-" + localDateOnly());
+        fn.value = safeName(rt.name) + "-" + localDateOnly();
         var an = el("input"); an.type="text"; an.placeholder="Analyst name";
         an.value = LS.get("aq.analyst") || "";
         var lb = el("input"); lb.type="text"; lb.placeholder="Laboratory"; lb.className="full";
@@ -997,8 +1012,7 @@ ${code}
         out.parentNode.insertBefore(sp, out);
 
         function persist(){
-          LS.set("env.file", fn.value||"");
-          LS.set("aq.analyst", an.value||"");
+                    LS.set("aq.analyst", an.value||"");
           LS.set("aq.lab", lb.value||"");
         }
         pdf.addEventListener("click", function(){
@@ -1007,7 +1021,7 @@ ${code}
           try{ blob = makePdf(rt, lr, fn.value, an.value, lb.value); }
           catch(e){ setStatus("PDF build failed: "+(e&&e.message||e), true); return; }
           if(!blob){ setStatus("PDF engine not loaded.", true); return; }
-          var fname = (fn.value || rt.id) + ".pdf";
+          var fname = (fn.value || safeName(rt.name)) + ".pdf";
 
           if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()){
             var Fs = plugin("Filesystem"), Sh = plugin("Share");
