@@ -184,12 +184,10 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     <p>It is designed for practising analysts, laboratory chemists, field-monitoring teams
     and students who need a fast, traceable calculation at the bench or in the field, with the
     governing standard always in view.</p>
-    <p><b>Author:</b> Dr. Nirmal Kumar Sharma. A personal project.</p>
+    <p><b>Author:</b> Nirmal Kumar Sharma</p>
     <div class="disc">
     <p style="margin:0 0 8px"><b>Not an official product.</b> Envicron is an independent personal
-    project. It is not issued, endorsed or approved by any government department, regulatory body
-    or standards organisation, and no such endorsement is claimed or implied. It contains no
-    internal procedure code, official format or unpublished material.</p>
+    project.</p>
     <p style="margin:0"><b>A calculation aid, not a validated method.</b> Under ISO/IEC 17025:2017
     &sect;7.11.2, any software used to produce reported results must be verified before use. Check
     each routine against the current edition of the standard it cites before relying on it, and
@@ -213,7 +211,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div class="wrap">
 <header>
   <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
-  <div class="sub">Offline environmental laboratory &amp; field calculators · <span id="count"></span></div>
+  <div class="sub">Environmental Laboratory &amp; Field Calculators (Offline) · <span id="count"></span></div>
   <div class="hactions"><button class="themebtn" id="aboutbtn" type="button">About</button><button class="themebtn" id="themebtn" type="button">◐ Theme</button></div>
 </header>
 
@@ -9931,50 +9929,83 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
      sheet). In a plain browser we fall back to Blob download / Web Share /
      clipboard. Each path degrades to the on-screen text so nothing silently
      fails. ---------------------------------------------------------------- */
-  function cap(){ return (window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : null; }
   function flash(btn,msg,back){ if(!btn) return; var o=btn.textContent; btn.textContent=msg;
-    setTimeout(function(){ btn.textContent=back||o; }, 1700); }
+    setTimeout(function(){ btn.textContent=back||o; }, 1900); }
 
-  function showText(txt){
-    // last-resort visible, selectable copy of the report
-    var m=document.getElementById("about");
+  function isNative(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+
+  /* In a no-bundler build the plugin JS is never imported, so
+     window.Capacitor.Plugins.<X> is undefined even though the plugin IS compiled
+     into the app. The native runtime lists compiled plugins in
+     Capacitor.PluginHeaders; registerPlugin(name) reads that and builds the
+     proxy. So we register on demand. Returns the plugin proxy or null. */
+  function plugin(name){
+    try{
+      if(!window.Capacitor) return null;
+      var P = window.Capacitor.Plugins || {};
+      if(P[name]) return P[name];
+      var hdrs = window.Capacitor.PluginHeaders;
+      if(window.Capacitor.registerPlugin && hdrs && hdrs.some(function(h){return h.name===name;})){
+        return window.Capacitor.registerPlugin(name);
+      }
+      return null;
+    }catch(e){ return null; }
+  }
+
+  function showText(txt, note){
     var pre=document.createElement("div"); pre.className="savepanel";
-    pre.style.whiteSpace="pre-wrap"; pre.style.userSelect="text"; pre.textContent=txt;
+    if(note){ var n=document.createElement("div"); n.style.color="var(--warn)"; n.style.fontSize="11.5px";
+      n.style.marginBottom="6px"; n.textContent=note; pre.appendChild(n); }
+    var body=document.createElement("div"); body.style.whiteSpace="pre-wrap"; body.style.userSelect="text";
+    body.style.fontSize="12px"; body.textContent=txt; pre.appendChild(body);
     var host=document.querySelector(".savepanel"); if(host&&host.parentNode) host.parentNode.appendChild(pre);
   }
 
+  /* Save: write the HTML report to a shareable location and open the Android
+     share/open sheet so the user can pick "Print > Save as PDF", Drive, etc.
+     Errors are SHOWN, not swallowed. */
   function saveReport(name, htmlDoc, txt, btn){
-    var P=cap();
-    if(P && P.Filesystem){
-      // write .html into Documents, then offer to open/share it
-      P.Filesystem.writeFile({
-        path: name + ".html", data: htmlDoc, directory: "CACHE", encoding: "utf8", recursive:true
-      }).then(function(res){
-        flash(btn,"Saved ✓","Save as PDF");
-        // try to open the saved file so the user can Print > Save as PDF
-        if(P.FileOpener && res && res.uri){
-          P.FileOpener.open({ filePath: res.uri, contentType: "text/html" }).catch(function(){});
-        } else if(P.Share && res && res.uri){
-          P.Share.share({ title:name, url:res.uri }).catch(function(){});
-        }
-      }).catch(function(e){
-        // filesystem denied -> share the text instead
-        shareReport(name, txt, btn);
-      });
+    if(isNative()){
+      var Fs = plugin("Filesystem"), Sh = plugin("Share");
+      if(!Fs){ showText(txt, "Could not reach the file system on this build. The report text is below — long-press to copy."); return; }
+      // Write to CACHE: the Share plugin's built-in FileProvider
+      // (the app fileprovider) covers the cache folder by default, so the
+      // file:// path from getUri can be shared as a safe content:// uri with no
+      // extra native config. Then hand it to the Android share/open sheet, where
+      // the user picks "Print > Save as PDF", Drive, Gmail, etc.
+      var fpath = name + ".html";
+      Fs.writeFile({ path: fpath, data: htmlDoc, directory: "CACHE", encoding: "utf8", recursive: true })
+        .then(function(){ return Fs.getUri({ path: fpath, directory: "CACHE" }); })
+        .then(function(u){
+          var fileUrl = u && u.uri;
+          if(Sh && fileUrl){
+            return Sh.share({ title: name, files: [fileUrl], dialogTitle: "Save or share report" })
+              .then(function(){ flash(btn,"Done ✓","Save as PDF"); });
+          }
+          // no Share plugin: at least confirm the write and show text
+          flash(btn,"Saved ✓","Save as PDF");
+          showText(txt, "Saved to app storage. Sharing is unavailable on this build; report text below.");
+        })
+        .catch(function(e){
+          showText(txt, "Save failed: " + (e && (e.message||e.errorMessage) || e) + ". The report text is below — long-press to copy.");
+        });
       return;
     }
-    // browser: blob download
-    if(downloadFile(name + ".html", htmlDoc, "text/html")){ flash(btn,"Saved ✓","Save as PDF");
+    // Browser (desktop preview): real download + print dialog.
+    if(downloadFile(name + ".html", htmlDoc, "text/html")){
+      flash(btn,"Downloaded ✓","Save as PDF");
       try{ document.getElementById("record").innerHTML=htmlDoc; if(window.print) window.print(); }catch(e){}
-      return; }
-    showText(txt);
+      return;
+    }
+    showText(txt, "Download is not available here. Report text below.");
   }
 
   function shareReport(name, txt, btn){
-    var P=cap();
-    if(P && P.Share){
-      P.Share.share({ title:name, text:txt, dialogTitle:"Share report" })
-        .then(function(){}).catch(function(){ copyText(txt, btn); });
+    if(isNative()){
+      var Sh = plugin("Share");
+      if(Sh){ Sh.share({ title:name, text:txt, dialogTitle:"Share report" })
+        .then(function(){}).catch(function(e){ showText(txt, "Share failed: "+(e&&(e.message||e)||e)+"."); }); return; }
+      showText(txt, "Share is unavailable on this build. Report text below — long-press to copy.");
       return;
     }
     if(navigator.share){ navigator.share({title:name, text:txt}).catch(function(){ copyText(txt,btn); }); return; }
@@ -10431,7 +10462,7 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
     return mx && mx.mods && mx.mods.indexOf(rt.mod) >= 0;
   }
 
-  document.getElementById("count").textContent = ROUTINES.length + " routines · " + MODULES.length + " modules";
+  document.getElementById("count").textContent = ROUTINES.length + " Calculations · 7 Modules";
 
   function matches(rt){
     if(!inMatrix(rt)) return false;
