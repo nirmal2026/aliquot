@@ -9875,6 +9875,7 @@ return { ROUTINES, __default };
 })();
 
 /* ---- bindings the UI uses ---- */
+var BUILD = "merged tree";
 var MODULES = NS_base_js.MODULES;
 var PRESETS = NS_uncert_js.PRESETS;
 var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS_plant_js.__default, NS_water_is10500_js.__default, NS_hwm2016_js.__default, NS_phyto_js.__default, NS_qc_uncert_js.__default, NS_decision_js.__default, NS_noise_js.__default);
@@ -10274,7 +10275,7 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
     var h = [], lab = LS.get("aq.lab")||"", an = LS.get("aq.analyst")||"";
     var samp = state[rt.id].__sample || "";
     h.push("<h2>"+esc(rt.name)+"</h2>");
-    h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron merged tree · routine <b>"+esc(rt.id)+
+    h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron " + BUILD + " · routine <b>"+esc(rt.id)+
            "</b> · module "+esc(rt.mod)+" · tier "+esc(rt.tier)+" · generated "+
            esc(new Date().toISOString().replace("T"," ").slice(0,19))+" UTC</div>");
     h.push("<table><tr><th>Laboratory</th><td>"+esc(lab)+"</td><th>Analyst</th><td>"+esc(an)+

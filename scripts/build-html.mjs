@@ -93,15 +93,16 @@ const BASE_NS = nsName("src/modules/base.js");
 const UNCERT_NS = nsName("src/modules/qc-uncert.js");
 const LIBUNCERT_NS = nsName("src/lib/uncert.js");
 
+const BUILD = "merged tree";
+
 const code =
   parts.map((p) => p.code).join("\n") +
   `\n/* ---- bindings the UI uses ---- */\n` +
+  `var BUILD = ${JSON.stringify(BUILD)};\n` +
   `var MODULES = ${BASE_NS}.MODULES;\n` +
   `var PRESETS = ${LIBUNCERT_NS}.PRESETS;\n` +
   `var ALL_ROUTINES = [].concat(${nsName("src/modules/base.js")}.__default, ${nsName("src/modules/additions.js")}.__default, ${nsName("src/modules/plant.js")}.__default, ${nsName("src/modules/water-is10500.js")}.__default, ${nsName("src/modules/hwm2016.js")}.__default, ${nsName("src/modules/phyto.js")}.__default, ${nsName("src/modules/qc-uncert.js")}.__default, ${nsName("src/modules/decision.js")}.__default, ${nsName("src/modules/noise.js")}.__default);
 `;
-
-const BUILD = "merged tree";
 
 const html = `<!doctype html>
 <html lang="en">
@@ -741,7 +742,7 @@ ${code}
     var h = [], lab = LS.get("aq.lab")||"", an = LS.get("aq.analyst")||"";
     var samp = state[rt.id].__sample || "";
     h.push("<h2>"+esc(rt.name)+"</h2>");
-    h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron ${BUILD} · routine <b>"+esc(rt.id)+
+    h.push('<div class="meta">'+esc(rt.sub)+"<br>Envicron " + BUILD + " · routine <b>"+esc(rt.id)+
            "</b> · module "+esc(rt.mod)+" · tier "+esc(rt.tier)+" · generated "+
            esc(new Date().toISOString().replace("T"," ").slice(0,19))+" UTC</div>");
     h.push("<table><tr><th>Laboratory</th><td>"+esc(lab)+"</td><th>Analyst</th><td>"+esc(an)+
