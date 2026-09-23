@@ -899,22 +899,38 @@ ${code}
         }
         pdf.addEventListener("click", function(){
           persist();
-          // Render the report into the hidden #record element. The @media print
-          // stylesheet hides the app and shows only #record, so the Android print
-          // sheet prints the REPORT. The user picks "Save as PDF" (a real .pdf in
-          // Downloads) or a physical printer. This is how Android makes PDFs.
-          try{
-            document.getElementById("record").innerHTML =
-              buildRecord(rt, lr.values, lr.rows, lr.results);
-            var t = document.title; document.title = (fn.value || rt.name);
-            setStatus("Opening the print dialog\u2026 choose \u201cSave as PDF\u201d or a printer.");
-            // window.print() reaches Android's print framework in the Capacitor WebView.
-            if(window.print){ window.print(); }
-            else { setStatus("Printing is not available on this device.", true); }
-            setTimeout(function(){ document.title = t; }, 800);
-          }catch(e){
-            setStatus("Could not open the print dialog: " + (e && e.message || e), true);
+          var recHtml = buildRecord(rt, lr.values, lr.rows, lr.results);
+          // Wrap the report in a standalone, print-styled HTML document.
+          var doc = "<!doctype html><html><head><meta charset=utf-8><style>"
+            + "body{font-family:Georgia,serif;color:#000;background:#fff;margin:0;padding:14px;font-size:12px}"
+            + "h2{font-size:16px;margin:0 0 3px} .meta{font-size:11px;color:#333;margin-bottom:10px}"
+            + "table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed} "
+            + "th,td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top;word-break:break-word} "
+            + "th{background:#eee} .cit{font-size:10px;margin-top:10px;border-top:1px solid #999;padding-top:6px} "
+            + ".sig{margin-top:22px;font-size:11px}"
+            + "</style></head><body>" + recHtml + "</body></html>";
+
+          if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()){
+            var Pr = plugin("Printer");
+            if(Pr && Pr.print){
+              setStatus("Opening the print dialog\u2026 choose \u201cSave as PDF\u201d or a printer.");
+              Pr.print({ content: doc, name: (fn.value || rt.id) })
+                .then(function(){ setStatus("Print dialog closed."); flash(pdf,"\u2713","Print / Save as PDF"); })
+                .catch(function(e){ setStatus("Print failed: " + (e && (e.message||e) || e) + ". Use Share \u2192 print instead.", true); });
+              return;
+            }
+            // Printer plugin not present in this build — tell the user plainly.
+            setStatus("Print plugin not found in this build. Use Share \u2192 your printer or \u201cSave to Files\u201d instead.", true);
+            return;
           }
+
+          // Browser (desktop preview): the built-in print dialog works here.
+          try{
+            document.getElementById("record").innerHTML = recHtml;
+            var t = document.title; document.title = (fn.value || rt.name);
+            if(window.print){ window.print(); setStatus("Opening the print dialog\u2026 choose \u201cSave as PDF\u201d."); }
+            setTimeout(function(){ document.title = t; }, 800);
+          }catch(e){ setStatus("Could not print: " + (e && e.message || e), true); }
         });
         shr.addEventListener("click", function(){
           persist();
