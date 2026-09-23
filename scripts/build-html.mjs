@@ -709,7 +709,20 @@ ${code}
     return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
   }
 
-  /* Build the report as a REAL PDF using jsPDF (inlined, offline). Returns a
+  function pdfSafe(t){
+    if(t==null) return "";
+    t=String(t)
+      .split("\u03c3").join("s").split("\u03bc").join("u").split("\u03b1").join("a")
+      .split("\u03b2").join("b").split("\u03b3").join("g").split("\u0394").join("D")
+      .split("\u00b7").join("-").split("\u2248").join("~").split("\u2264").join("<=")
+      .split("\u2265").join(">=").split("\u2212").join("-").split("\u2192").join("->")
+      .split("\u00b3").join("3").split("\u00b2").join("2").split("\u2013").join("-")
+      .split("\u2014").join("-").split("\u201c").join('"').split("\u201d").join('"')
+      .split("\u2019").join("'").split("\u2026").join("...");
+    var o=""; for(var i=0;i<t.length;i++){ o += (t.charCodeAt(i) < 256 ? t.charAt(i) : "?"); }
+    return o;
+  }
+    /* Build the report as a REAL PDF using jsPDF (inlined, offline). Returns a
      Blob. No native plugin involved in making the PDF — only in sharing it. */
   function makePdf(rt, lr, fname, an, lab){
     var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
@@ -720,18 +733,32 @@ ${code}
     function wrap(txt, size, bold, indent){
       doc.setFontSize(size||10); doc.setFont("helvetica", bold?"bold":"normal");
       var x=M+(indent||0);
-      var parts=doc.splitTextToSize(String(txt), W-(indent||0));
+      var parts=doc.splitTextToSize(pdfSafe(txt), W-(indent||0));
       for(var i=0;i<parts.length;i++){ if(y>800){doc.addPage();y=54;} doc.text(parts[i], x, y); y+=LH; }
     }
+    // Key/value row that NEVER overlaps: label wraps in the left column; value
+    // sits in the right column; if the label is too long it drops to its own line.
+    var KX=M, VX=M+230, VW=W-230;   // value column at 230pt, plenty of gap
     function kv(k,v){
       doc.setFontSize(10);
-      doc.setFont("helvetica","bold"); if(y>800){doc.addPage();y=54;} doc.text(String(k), M, y);
-      doc.setFont("helvetica","normal"); doc.text(String(v==null?"":v), M+150, y); y+=LH;
+      var kw=pdfSafe(k), vw=pdfSafe(v==null?"":v);
+      doc.setFont("helvetica","bold");
+      var klines=doc.splitTextToSize(kw, VX-KX-10);   // label wraps within its column
+      doc.setFont("helvetica","normal");
+      var vlines=doc.splitTextToSize(vw, VW);
+      var rows=Math.max(klines.length, vlines.length);
+      var startY=y;
+      for(var i=0;i<rows;i++){
+        if(y>800){doc.addPage();y=54; startY=y;}
+        if(klines[i]){ doc.setFont("helvetica","bold"); doc.text(klines[i], KX, y); }
+        if(vlines[i]){ doc.setFont("helvetica","normal"); doc.text(vlines[i], VX, y); }
+        y+=LH;
+      }
     }
     // Title
     wrap(rt.name, 15, true); y+=2;
     doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(90);
-    wrap("Envicron "+BUILD+" \u00b7 "+rt.id+" / "+rt.mod+" \u00b7 "+localStamp(), 9);
+    wrap("Envicron \u00b7 "+rt.id+" / "+rt.mod+" \u00b7 "+localStamp(), 9);
     doc.setTextColor(0); y+=4; line();
     // Header block
     if(lab) kv("Laboratory", lab);
