@@ -9964,40 +9964,49 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
   /* Save: write the HTML report to a shareable location and open the Android
      share/open sheet so the user can pick "Print > Save as PDF", Drive, etc.
      Errors are SHOWN, not swallowed. */
-  function saveReport(name, htmlDoc, txt, btn){
-    if(isNative()){
+  function saveReport(name, htmlDoc, txt, btn, say){
+    say = say || function(){};
+    // Diagnostic: report the environment so a silent failure becomes visible.
+    var envnote = "";
+    try{
+      var haveCap = !!window.Capacitor;
+      var nativeP = haveCap && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+      var heads = haveCap && window.Capacitor.PluginHeaders ? window.Capacitor.PluginHeaders.map(function(h){return h.name;}) : [];
+      envnote = "env: capacitor=" + haveCap + " native=" + !!nativeP + " plugins=[" + heads.join(",") + "]";
+    }catch(e){ envnote = "env probe failed: " + e; }
+
+    if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()){
       var Fs = plugin("Filesystem"), Sh = plugin("Share");
-      if(!Fs){ showText(txt, "Could not reach the file system on this build. The report text is below — long-press to copy."); return; }
-      // Write to CACHE: the Share plugin's built-in FileProvider
-      // (the app fileprovider) covers the cache folder by default, so the
-      // file:// path from getUri can be shared as a safe content:// uri with no
-      // extra native config. Then hand it to the Android share/open sheet, where
-      // the user picks "Print > Save as PDF", Drive, Gmail, etc.
+      if(!Fs){ say("File system plugin not available.\n" + envnote + "\nUse Email report instead.", true);
+               flash(btn,"–","Save as PDF"); return; }
       var fpath = name + ".html";
+      say("Writing file…");
       Fs.writeFile({ path: fpath, data: htmlDoc, directory: "CACHE", encoding: "utf8", recursive: true })
         .then(function(){ return Fs.getUri({ path: fpath, directory: "CACHE" }); })
         .then(function(u){
           var fileUrl = u && u.uri;
           if(Sh && fileUrl){
             return Sh.share({ title: name, files: [fileUrl], dialogTitle: "Save or share report" })
-              .then(function(){ flash(btn,"Done ✓","Save as PDF"); });
+              .then(function(){ say("Shared. Choose Print → Save as PDF, or Drive."); flash(btn,"Done ✓","Save as PDF"); });
           }
-          // no Share plugin: at least confirm the write and show text
-          flash(btn,"Saved ✓","Save as PDF");
-          showText(txt, "Saved to app storage. Sharing is unavailable on this build; report text below.");
+          say("Saved to app storage, but the Share plugin is missing so it cannot be opened.\n" + envnote, true);
+          flash(btn,"Saved","Save as PDF");
         })
         .catch(function(e){
-          showText(txt, "Save failed: " + (e && (e.message||e.errorMessage) || e) + ". The report text is below — long-press to copy.");
+          say("Save failed: " + (e && (e.message||e.errorMessage) || e) + "\n" + envnote + "\nTry Email report instead.", true);
+          flash(btn,"✗","Save as PDF");
         });
       return;
     }
-    // Browser (desktop preview): real download + print dialog.
+    // Browser (desktop preview)
     if(downloadFile(name + ".html", htmlDoc, "text/html")){
+      say("Downloaded. Open it and use Print → Save as PDF.");
       flash(btn,"Downloaded ✓","Save as PDF");
       try{ document.getElementById("record").innerHTML=htmlDoc; if(window.print) window.print(); }catch(e){}
       return;
     }
-    showText(txt, "Download is not available here. Report text below.");
+    say("Download not available here. Use Email report, or copy the text below.", true);
+    showText(txt);
   }
 
   function shareReport(name, txt, btn){
@@ -10010,6 +10019,30 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
     }
     if(navigator.share){ navigator.share({title:name, text:txt}).catch(function(){ copyText(txt,btn); }); return; }
     copyText(txt, btn);
+  }
+
+  /* Email the report as a prefilled message. Pure mailto — no plugin, works in
+     every WebView. Body is text (mailto cannot attach a file). Prefilled To. */
+  function emailReport(name, txt, btn, say){
+    say = say || function(){};
+    var to = "nir01471@gmail.com";
+    var subject = "Envicron report — " + name;
+    // Keep the body within a safe length; mail apps vary. Trim with a note.
+    var body = txt;
+    var MAX = 1800;
+    if(body.length > MAX){ body = body.slice(0, MAX) + "\n\n[Report truncated for email. Use Save as PDF for the full record.]"; }
+    var href = "mailto:" + encodeURIComponent(to)
+             + "?subject=" + encodeURIComponent(subject)
+             + "&body=" + encodeURIComponent(body);
+    try{
+      // Prefer Capacitor App/Browser openers if present, else location.
+      window.location.href = href;
+      say("Opening your email app to " + to + "… tap Send. (Attachment is not possible by email; use Save as PDF for the file.)");
+      flash(btn,"Opening…","Email report");
+    }catch(e){
+      say("Could not open the email app: " + e + "\nThe report text is below — long-press to copy.", true);
+      showText(txt);
+    }
   }
 
   function copyText(txt, btn){
@@ -10405,8 +10438,13 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
         var srow = el("div","btnrow");
         var pdf = el("button",null,"Save as PDF");
         var shr = el("button","sec","Share");
-        srow.appendChild(pdf); srow.appendChild(shr);
+        var eml = el("button","sec","Email report");
+        srow.appendChild(pdf); srow.appendChild(shr); srow.appendChild(eml);
         sp.appendChild(srow);
+        var status = el("div"); status.style.fontSize="11.5px"; status.style.marginTop="6px";
+        status.style.color="var(--sub)"; status.style.whiteSpace="pre-line";
+        sp.appendChild(status);
+        function setStatus(msg, bad){ status.textContent = msg; status.style.color = bad ? "var(--bad)" : "var(--sub)"; }
         out.parentNode.insertBefore(sp, out);
 
         function persist(){
@@ -10427,12 +10465,17 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
             + "th{background:#f0f0f0} .sig{margin-top:24px;font-size:11px}"
             + "</style></head><body>" + recHtml + "</body></html>";
           var txt = reportText(rt, lr, fn.value, an.value, lb.value);
-          saveReport((fn.value||rt.id), htmlDoc, txt, pdf);
+          saveReport((fn.value||rt.id), htmlDoc, txt, pdf, setStatus);
         });
         shr.addEventListener("click", function(){
           persist();
           var txt = reportText(rt, lr, fn.value, an.value, lb.value);
           shareReport((fn.value||rt.name), txt, shr);
+        });
+        eml.addEventListener("click", function(){
+          persist();
+          var txt = reportText(rt, lr, fn.value, an.value, lb.value);
+          emailReport((fn.value||rt.name), txt, eml, setStatus);
         });
       });
     }
