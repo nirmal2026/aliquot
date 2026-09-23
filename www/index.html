@@ -10024,28 +10024,6 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
 
   /* Email the report as a prefilled message. Pure mailto — no plugin, works in
      every WebView. Body is text (mailto cannot attach a file). Prefilled To. */
-  function emailReport(name, txt, btn, say){
-    say = say || function(){};
-    var to = "nir01471@gmail.com";
-    var subject = "Envicron report — " + name;
-    // Keep the body within a safe length; mail apps vary. Trim with a note.
-    var body = txt;
-    var MAX = 1800;
-    if(body.length > MAX){ body = body.slice(0, MAX) + "\n\n[Report truncated for email. Use Save as PDF for the full record.]"; }
-    var href = "mailto:" + encodeURIComponent(to)
-             + "?subject=" + encodeURIComponent(subject)
-             + "&body=" + encodeURIComponent(body);
-    try{
-      // Prefer Capacitor App/Browser openers if present, else location.
-      window.location.href = href;
-      say("Opening your email app to " + to + "… tap Send. (Attachment is not possible by email; use Save as PDF for the file.)");
-      flash(btn,"Opening…","Email report");
-    }catch(e){
-      say("Could not open the email app: " + e + "\nThe report text is below — long-press to copy.", true);
-      showText(txt);
-    }
-  }
-
   function copyText(txt, btn){
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(function(){ flash(btn,"Copied ✓","Share"); },
@@ -10437,10 +10415,9 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
         grid.appendChild(fn); grid.appendChild(an); grid.appendChild(lb);
         sp.appendChild(grid);
         var srow = el("div","btnrow");
-        var pdf = el("button",null,"Save as PDF");
+        var pdf = el("button",null,"Print / Save as PDF");
         var shr = el("button","sec","Share");
-        var eml = el("button","sec","Email report");
-        srow.appendChild(pdf); srow.appendChild(shr); srow.appendChild(eml);
+        srow.appendChild(pdf); srow.appendChild(shr);
         sp.appendChild(srow);
         var status = el("div"); status.style.fontSize="11.5px"; status.style.marginTop="6px";
         status.style.color="var(--sub)"; status.style.whiteSpace="pre-line";
@@ -10455,28 +10432,27 @@ var ALL_ROUTINES = [].concat(NS_base_js.__default, NS_additions_js.__default, NS
         }
         pdf.addEventListener("click", function(){
           persist();
-          var recHtml = buildRecord(rt, lr.values, lr.rows, lr.results);
-          var htmlDoc = "<!doctype html><html><head><meta charset=utf-8>"
-            + "<meta name=viewport content='width=device-width,initial-scale=1'>"
-            + "<title>" + esc(fn.value || rt.name) + "</title><style>"
-            + "body{font-family:Georgia,serif;color:#000;background:#fff;padding:16px;font-size:12px}"
-            + "h2{font-size:16px;margin:0 0 4px} .meta{font-size:11px;color:#333;margin-bottom:10px}"
-            + "table{width:100%;border-collapse:collapse;font-size:11px} "
-            + "th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top} "
-            + "th{background:#f0f0f0} .sig{margin-top:24px;font-size:11px}"
-            + "</style></head><body>" + recHtml + "</body></html>";
-          var txt = reportText(rt, lr, fn.value, an.value, lb.value);
-          saveReport((fn.value||rt.id), htmlDoc, txt, pdf, setStatus);
+          // Render the report into the hidden #record element. The @media print
+          // stylesheet hides the app and shows only #record, so the Android print
+          // sheet prints the REPORT. The user picks "Save as PDF" (a real .pdf in
+          // Downloads) or a physical printer. This is how Android makes PDFs.
+          try{
+            document.getElementById("record").innerHTML =
+              buildRecord(rt, lr.values, lr.rows, lr.results);
+            var t = document.title; document.title = (fn.value || rt.name);
+            setStatus("Opening the print dialog… choose “Save as PDF” or a printer.");
+            // window.print() reaches Android's print framework in the Capacitor WebView.
+            if(window.print){ window.print(); }
+            else { setStatus("Printing is not available on this device.", true); }
+            setTimeout(function(){ document.title = t; }, 800);
+          }catch(e){
+            setStatus("Could not open the print dialog: " + (e && e.message || e), true);
+          }
         });
         shr.addEventListener("click", function(){
           persist();
           var txt = reportText(rt, lr, fn.value, an.value, lb.value);
           shareReport((fn.value||rt.name), txt, shr);
-        });
-        eml.addEventListener("click", function(){
-          persist();
-          var txt = reportText(rt, lr, fn.value, an.value, lb.value);
-          emailReport((fn.value||rt.name), txt, eml, setStatus);
         });
       });
     }
