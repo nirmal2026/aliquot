@@ -910,7 +910,6 @@ ${code}
     t.appendChild(el("h3", null, rt.name));
     t.appendChild(el("p", null, rt.sub));
     head.appendChild(t);
-    head.appendChild(el("span","pill "+(rt.tier==="advanced"?"adv":"rout"), rt.tier));
     var chev = el("span","chev","▾"); head.appendChild(chev);
     c.appendChild(head);
 
