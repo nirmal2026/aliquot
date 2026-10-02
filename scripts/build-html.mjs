@@ -296,7 +296,6 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     <p>It is designed for practising analysts, laboratory chemists, field-monitoring teams
     and students who need a fast, traceable calculation at the bench or in the field, with the
     governing standard always in view.</p>
-    <p><b>Author:</b> Nirmal Kumar Sharma</p>
     <div class="disc">
     <p style="margin:0 0 8px"><b>Not an official product.</b> Envicron is an independent personal
     project.</p>
