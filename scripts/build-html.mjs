@@ -137,6 +137,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:v
 header{padding:14px 0 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
 h1{margin:0;font-size:21px;letter-spacing:-.01em}
 .sub{color:var(--dim);font-size:12.5px;margin-top:3px}
+.tagline{font-size:14px;font-weight:600;letter-spacing:.01em;color:var(--accent);margin-top:2px}
 .controls{position:sticky;top:0;z-index:9;background:var(--bg);padding:8px 0 10px;
   border-bottom:1px solid var(--line);margin-bottom:14px}
 #q{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
@@ -231,6 +232,7 @@ table.rows input,table.rows select{padding:6px;font-size:12.5px;border-radius:6p
 .logo{display:inline-flex;align-items:center;margin-right:8px;vertical-align:middle}
 header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:20px;margin:0;display:flex;align-items:center}
+header .tagline{flex:1 1 100%;order:2}
 header .sub{flex:1 1 100%;order:3;margin-top:2px}
 .hactions{display:flex;gap:6px;flex:0 0 auto}
 .themebtn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
@@ -277,7 +279,9 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div id="about">
   <div class="card2">
     <button class="x" id="aboutx" type="button">Close</button>
-    <h2>Envicron</h2>
+    <h2 style="margin-bottom:2px">Envicron</h2>
+    <div class="tagline" style="margin:0 0 4px">Measure. Calculate. Cite. Report.</div>
+    <div class="sub" style="margin:0 0 12px">91 Calculations &middot; 7 Modules &middot; Offline</div>
     <p class="lead"><b>Offline Environmental Laboratory &amp; Field Calculator.</b></p>
     <p>Envicron brings together 91 calculation routines used across environmental and
     bio-science laboratory work — spanning water and wastewater, ambient air, source
@@ -303,6 +307,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     Results are the user&rsquo;s responsibility.</p>
     </div>
     <p style="margin-top:10px;color:var(--sub);font-size:11.5px">Version 1.0</p>
+    <p style="margin-top:4px;color:var(--sub);font-size:11.5px">&copy; 2025&ndash;2026 Nirmal Kumar Sharma. All rights reserved.</p>
   </div>
 </div>
 <div id="gate">
@@ -319,7 +324,8 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div class="wrap">
 <header>
   <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
-  <div class="sub">Environmental Laboratory &amp; Field Calculators (Offline) · <span id="count"></span></div>
+  <div class="tagline">Calculate. Cite. Report.</div>
+  <div class="sub"><span id="count"></span></div>
   <div class="hactions"><button class="themebtn" id="aboutbtn" type="button">About</button><button class="themebtn" id="themebtn" type="button">◐ Theme</button></div>
 </header>
 
@@ -1085,7 +1091,7 @@ ${code}
     return mx && mx.mods && mx.mods.indexOf(rt.mod) >= 0;
   }
 
-  document.getElementById("count").textContent = ROUTINES.length + " Calculations · 7 Modules";
+  document.getElementById("count").textContent = ROUTINES.length + " Calculations · 7 Modules · Offline";
 
   function matches(rt){
     if(!inMatrix(rt)) return false;
