@@ -183,6 +183,11 @@ button{background:var(--accent);color:#08150f;border:0;border-radius:9px;padding
 button.sec{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:500}
 button[disabled]{opacity:.45;cursor:default}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.lock{font-size:10.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:1px 8px;white-space:nowrap;flex:none}
+.paywall{padding:14px 2px 4px}
+.paywall .pw-h{font-weight:700;font-size:14px;margin:0 0 6px}
+.paywall .pw-p{font-size:12.5px;line-height:1.5;color:var(--ink);margin:0 0 12px}
+.paywall .pw-st{font-size:11.5px;margin-top:10px;color:var(--sub);min-height:14px;white-space:pre-line}
 .tbl{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:4px}
 .tr{display:grid;grid-template-columns:1fr 104px;align-items:center;gap:8px;
   padding:5px 9px;border-bottom:1px solid #1f2733}
@@ -305,6 +310,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     confirm every regulatory limit against the notification in force — limits change over time.
     Results are the user&rsquo;s responsibility.</p>
     </div>
+    <p id="entstatus" style="margin-top:10px;color:var(--sub);font-size:11.5px"></p>
     <p style="margin-top:10px;color:var(--sub);font-size:11.5px">Version 1.0</p>
     <p style="margin-top:4px;color:var(--sub);font-size:11.5px">&copy; 2025&ndash;2026 Nirmal Kumar Sharma. All rights reserved.</p>
   </div>
@@ -522,6 +528,114 @@ ${code}
 
   function el(t,c,x){ var e=document.createElement(t); if(c)e.className=c;
     if(x!=null)e.textContent=x; return e; }
+
+  /* ---- entitlement & Play Billing gate ----------------------------------
+     Freemium. FREE_MODS are free for everyone; every other module needs the
+     one-time Pro unlock. The entitlement follows the user's Google account
+     through Play Billing (native bridge window.EnvicronBilling), is cached on
+     device, and resolves offline after the first sync. Acknowledge is called
+     on every sync, not only at purchase, so Google does not auto-refund a
+     purchase the app was killed before acknowledging. The unlock is a
+     non-consumable product — it is never consumed.
+
+     RELEASE SWITCH: for the Play Store build set PREVIEW = false. With
+     PREVIEW = true (debug/side-load) a "Test unlock" button appears so the
+     full app can be exercised without a live Play purchase; the real
+     "Unlock" button needs the native billing bridge, which exists only in a
+     Play-installed build.
+     --------------------------------------------------------------------- */
+  var ENT = (function(){
+    var PREVIEW = true;                 /* RELEASE: set to false */
+    var PRODUCT = "envicron_pro_unlock";/* Play Console product id */
+    var FREE_MODS = ["conv","sol"];     /* free tier: converters + solutions */
+    var SKEY = "env.ent.v2";
+    var cur = { pro:false, source:"none", orderId:null, tMs:null, ack:false, sync:null };
+    var testPro = false, listeners = [];
+
+    try { var r = LS.get(SKEY); if(r){ var e = JSON.parse(r);
+      cur.pro=!!e.pro; cur.source=e.source||"none"; cur.orderId=e.orderId||null;
+      cur.tMs=e.tMs||null; cur.ack=!!e.ack; } } catch(e){}
+    function save(){ try { LS.set(SKEY, JSON.stringify(cur)); } catch(e){} }
+    function bridge(){ return window.EnvicronBilling || null; }
+    function fire(){ listeners.forEach(function(f){ try{ f(); }catch(e){} }); }
+
+    function sync(){
+      var B = bridge();
+      if(!B) return Promise.resolve({ ok:false, reason:"no_bridge" });
+      return Promise.resolve().then(function(){ return B.init(); }).then(function(init){
+        if(!init || !init.ok) return { ok:false, reason:(init&&init.reason)||"unavailable" };
+        return Promise.resolve(B.queryPurchases()).then(function(q){
+          var ps = (q&&q.purchases)||[], p = null, i;
+          for(i=0;i<ps.length;i++){ if(ps[i].productId===PRODUCT && ps[i].purchaseState===1){ p=ps[i]; break; } }
+          if(!p){ cur.pro=false; cur.source="play"; cur.sync=Date.now(); save(); fire(); return { ok:true }; }
+          var ackP = p.acknowledged ? Promise.resolve({ok:true}) : B.acknowledge(p.purchaseToken);
+          return Promise.resolve(ackP).then(function(a){
+            cur.pro=true; cur.source="play"; cur.orderId=p.orderId||null;
+            cur.tMs=p.purchaseTime||null; cur.ack=!!(a&&a.ok)||!!p.acknowledged;
+            cur.sync=Date.now(); save(); fire(); return { ok:true };
+          });
+        });
+      }).catch(function(e){ return { ok:false, reason:String(e&&e.message||e) }; });
+    }
+    function buy(){
+      var B = bridge();
+      if(!B) return Promise.resolve({ ok:false, reason:"no_bridge" });
+      return Promise.resolve(B.launchPurchaseFlow(PRODUCT, null)).then(function(rr){
+        if(!rr) return { ok:false, reason:"error" };
+        if(rr.code==="cancelled") return { ok:false, reason:"cancelled" };
+        return sync().then(function(){ return { ok: cur.pro, reason: cur.pro?null:(rr.code||"error") }; });
+      }).catch(function(e){ return { ok:false, reason:String(e&&e.message||e) }; });
+    }
+    return {
+      pro: function(){ return cur.pro || testPro; },
+      unlocked: function(rt){ return FREE_MODS.indexOf(rt.mod) >= 0 || cur.pro || testPro; },
+      isFree: function(modId){ return FREE_MODS.indexOf(modId) >= 0; },
+      buy: buy, restore: sync, sync: sync,
+      onChange: function(fn){ listeners.push(fn); },
+      preview: function(){ return PREVIEW; },
+      testUnlock: function(){ testPro = true; fire(); }
+    };
+  })();
+
+  function paywallPanel(){
+    var box = el("div","paywall");
+    box.appendChild(el("div","pw-h","\u{1F512}  Part of the full Envicron suite"));
+    box.appendChild(el("p","pw-p",
+      "Unit converters and solution-prep calculators are free. This calculator — "+
+      "and the rest of the regulated and advanced suite — unlocks with a single "+
+      "one-time purchase. The unlock is tied to your Google account and restores on "+
+      "any device you sign in to."));
+    var rowb = el("div","btnrow");
+    var buyb = el("button", null, "Unlock full app — ₹50");
+    var restb = el("button","sec","Restore purchase");
+    rowb.appendChild(buyb); rowb.appendChild(restb);
+    box.appendChild(rowb);
+    var st = el("div","pw-st"); box.appendChild(st);
+    function setSt(m,bad){ st.textContent=m; st.style.color = bad?"var(--bad)":"var(--sub)"; }
+    buyb.addEventListener("click", function(){
+      setSt("Opening Google Play…");
+      ENT.buy().then(function(r){
+        if(r.ok){ setSt("Unlocked. Thank you."); draw(); }
+        else if(r.reason==="cancelled"){ setSt("Purchase cancelled."); }
+        else if(r.reason==="no_bridge"){ setSt("In-app purchase works only in the Play Store build, not this test APK.", true); }
+        else { setSt("Could not complete the purchase ("+r.reason+").", true); }
+      });
+    });
+    restb.addEventListener("click", function(){
+      setSt("Checking your Google account…");
+      ENT.restore().then(function(r){
+        if(ENT.pro()){ setSt("Purchase restored."); draw(); }
+        else if(r && r.reason==="no_bridge"){ setSt("Restore works only in the Play Store build.", true); }
+        else { setSt("No previous purchase found on this Google account.", true); }
+      });
+    });
+    if(ENT.preview()){
+      var tu = el("button","sec","Test unlock (debug)");
+      tu.addEventListener("click", function(){ ENT.testUnlock(); draw(); });
+      box.appendChild(tu);
+    }
+    return box;
+  }
 
   /* ---- shape adapters --------------------------------------------------- */
   var key  = function(i){ return i.k || i.id; };
@@ -910,6 +1024,7 @@ ${code}
     t.appendChild(el("h3", null, rt.name));
     t.appendChild(el("p", null, rt.sub));
     head.appendChild(t);
+    if(!ENT.unlocked(rt)) head.appendChild(el("span","lock","🔒 ₹50"));
     var chev = el("span","chev","▾"); head.appendChild(chev);
     c.appendChild(head);
 
@@ -922,6 +1037,7 @@ ${code}
     });
 
     function buildBody(){
+      if(!ENT.unlocked(rt)){ body.appendChild(paywallPanel()); return; }
       body.appendChild(el("div","formula", rt.formula));
       body.appendChild(el("div","ref", rt.ref));
       rt.inputs.forEach(function(i){
@@ -1168,6 +1284,18 @@ ${code}
   qbox.addEventListener("input", draw);
 
   draw();
+
+  /* entitlement: re-draw when it changes, and sync once on launch (offline-safe) */
+  function updateEntStatus(){
+    var es = document.getElementById("entstatus"); if(!es) return;
+    es.textContent = ENT.pro()
+      ? "Full suite: unlocked ✓"
+      : "Full suite: locked — unlock ₹50 inside any locked calculator. Converters and solution prep are free.";
+  }
+  function refresh(){ draw(); updateEntStatus(); }
+  ENT.onChange(refresh);
+  updateEntStatus();
+  Promise.resolve(ENT.sync()).then(function(){ refresh(); }).catch(function(){});
 
   if(!LS.persistent){
     var n = document.querySelector(".note");
