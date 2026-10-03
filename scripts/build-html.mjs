@@ -308,7 +308,6 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     confirm every regulatory limit against the notification in force — limits change over time.
     Results are the user&rsquo;s responsibility.</p>
     </div>
-    <p id="entstatus" style="margin-top:10px;color:var(--sub);font-size:11.5px"></p>
     <p style="margin-top:10px;color:var(--sub);font-size:11.5px">Version 1.0</p>
     <p style="margin-top:4px;color:var(--sub);font-size:11.5px">&copy; 2025&ndash;2026 Envicron. All rights reserved.</p>
   </div>
@@ -586,7 +585,7 @@ ${code}
     }
     return {
       pro: function(){ return cur.pro || testPro; },
-      unlocked: function(rt){ return FREE_MODS.indexOf(rt.mod) >= 0 || cur.pro || testPro; },
+      unlocked: function(rt){ return true; /* paywall disabled — all calculators are free */ },
       isFree: function(modId){ return FREE_MODS.indexOf(modId) >= 0; },
       buy: buy, restore: sync, sync: sync,
       onChange: function(fn){ listeners.push(fn); },
@@ -1283,17 +1282,7 @@ ${code}
 
   draw();
 
-  /* entitlement: re-draw when it changes, and sync once on launch (offline-safe) */
-  function updateEntStatus(){
-    var es = document.getElementById("entstatus"); if(!es) return;
-    es.textContent = ENT.pro()
-      ? "Full suite: unlocked ✓"
-      : "Full suite: locked — unlock ₹50 inside any locked calculator. Converters and solution prep are free.";
-  }
-  function refresh(){ draw(); updateEntStatus(); }
-  ENT.onChange(refresh);
-  updateEntStatus();
-  Promise.resolve(ENT.sync()).then(function(){ refresh(); }).catch(function(){});
+  /* paywall disabled — all calculators are free. ENT engine kept dormant for future re-enable. */
 
   if(!LS.persistent){
     var n = document.querySelector(".note");
