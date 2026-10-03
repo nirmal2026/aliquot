@@ -284,9 +284,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div id="about">
   <div class="card2">
     <button class="x" id="aboutx" type="button">Close</button>
-    <h2 style="margin-bottom:2px">Envicron</h2>
-    <div class="tagline" style="margin:0 0 4px">Measure. Calculate. Cite. Report.</div>
-    <div class="sub" style="margin:0 0 12px">91 Calculations &middot; 7 Modules &middot; Offline</div>
+    <h2>Envicron</h2>
     <p class="lead"><b>Offline Environmental Laboratory &amp; Field Calculator.</b></p>
     <p>Envicron brings together 91 calculation routines used across environmental and
     bio-science laboratory work — spanning water and wastewater, ambient air, source
@@ -312,7 +310,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     </div>
     <p id="entstatus" style="margin-top:10px;color:var(--sub);font-size:11.5px"></p>
     <p style="margin-top:10px;color:var(--sub);font-size:11.5px">Version 1.0</p>
-    <p style="margin-top:4px;color:var(--sub);font-size:11.5px">&copy; 2025&ndash;2026 Nirmal Kumar Sharma. All rights reserved.</p>
+    <p style="margin-top:4px;color:var(--sub);font-size:11.5px">&copy; 2025&ndash;2026 Envicron. All rights reserved.</p>
   </div>
 </div>
 <div id="gate">
@@ -320,8 +318,8 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     <div class="glogo"><svg viewBox="0 0 100 100" width="56" height="56" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc2"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg2)"/><g clip-path="url(#dc2)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></div>
     <h1 style="margin:.2em 0">Envicron</h1>
     <div class="sub" style="margin-bottom:6px">Sign in to continue · offline</div>
-    <input id="gid" type="text" placeholder="Login ID" autocomplete="username">
-    <input id="gpw" type="password" placeholder="Passcode" autocomplete="current-password" inputmode="numeric">
+    <input id="gid" type="text" placeholder="Login ID" autocomplete="username" value="Envicron">
+    <input id="gpw" type="password" placeholder="Passcode" autocomplete="current-password" inputmode="numeric" value="1234">
     <div class="err" id="gerr"></div>
     <button id="gbtn" type="button">Unlock</button>
   </div>
@@ -329,7 +327,7 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
 <div class="wrap">
 <header>
   <h1><span class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" width="26" height="26" style="vertical-align:middle" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12a06a"/><stop offset="1" stop-color="#0b7a53"/></linearGradient><clipPath id="dc"><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z"/></clipPath></defs><path d="M41 12L47 26M59 12L53 26" stroke="#0b7a53" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M50 30C50 30 72 58 72 72a22 22 0 0 1-44 0C28 58 50 30 50 30Z" fill="url(#dg)"/><g clip-path="url(#dc)"><ellipse cx="66" cy="82" rx="26" ry="22" fill="#e8478b" opacity="0.9"/></g><ellipse cx="43" cy="58" rx="5" ry="8" fill="#fff" opacity="0.30"/></svg></span>Envicron</h1>
-  <div class="tagline">Calculate. Cite. Report.</div>
+  <div class="tagline">Measure. Calculate. Cite. Report.</div>
   <div class="sub"><span id="count"></span></div>
   <div class="hactions"><button class="themebtn" id="aboutbtn" type="button">About</button><button class="themebtn" id="themebtn" type="button">◐ Theme</button></div>
 </header>
