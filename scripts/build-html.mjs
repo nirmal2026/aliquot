@@ -289,16 +289,15 @@ header .sub{flex:1 1 100%;order:3;margin-top:2px}
     <p>Envicron brings together 91 calculation routines used across environmental and
     bio-science laboratory work — spanning water and wastewater, ambient air, source
     (stack) emission, soil and sediment, hazardous waste and fuel, noise, and the
-    quality-assurance and quality-control that underpin them all. Each routine states the
-    standard, method number and clause it rests on, shows the formula it applies, validates
-    every input against its permitted range, and reports the result to the correct number of
-    significant figures with its citation.</p>
-    <p>The application is built to work entirely offline. No calculation requires a network
-    connection, and nothing you enter — sample data, analyst name or laboratory name —
-    ever leaves your device. Reports you save or share are generated locally on the phone.</p>
-    <p>It is designed for practising analysts, laboratory chemists, field-monitoring teams
-    and students who need a fast, traceable calculation at the bench or in the field, with the
-    governing standard always in view.</p>
+    quality-assurance and quality-control that underpin them all.</p>
+    <p>Every calculation displays, on screen, the standard from which it is drawn, with its
+    number, year and clause. No internet connection is required for any calculation.</p>
+    <p>A result may be saved or printed as a PDF, or copied as plain text, and — where a
+    network connection is available — shared or emailed to any installed application, such as
+    WhatsApp, email, OneDrive or Google Drive, together with the date and time, the parameter
+    details, remarks, and the analyst&rsquo;s or organisation&rsquo;s name.</p>
+    <p>The application performs no analysis, collects and stores no user data, and makes no
+    determination of compliance; it computes a published formula and shows its source.</p>
     <div class="disc">
     <p style="margin:0 0 8px"><b>Not an official product.</b> Envicron is an independent personal
     project.</p>
