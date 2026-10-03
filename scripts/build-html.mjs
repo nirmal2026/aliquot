@@ -1183,17 +1183,10 @@ ${code}
   var tabs = document.getElementById("tabs");
   var qbox = document.getElementById("q");
   var tier = "all";
-  /* ---- 7 matrix pages (module -> matrix) ------------------------------- */
-  var MATRIX = [
-    {id:"all",   name:"All"},
-    {id:"qaqc",  name:"QA / QC",         mods:["qc","conv","sol"]},
-    {id:"water", name:"Water",           mods:["water","plant"]},
-    {id:"air",   name:"Air",             mods:["air","disp"]},
-    {id:"stack", name:"Source Emission", mods:["stack"]},
-    {id:"waste", name:"Waste & Fuel",    mods:["hw","fuel"]},
-    {id:"soil",  name:"Soil & Plant",    mods:["phyto"]},
-    {id:"noise", name:"Noise",           mods:["noise"]}
-  ];
+  /* ---- top slider: All + the 12 modules (one tab per module) ----------- */
+  var MATRIX = [{id:"all", name:"All"}].concat(MODULES.map(function(m){
+    return {id:m.id, name:m.name, mods:[m.id]};
+  }));
   var curMatrix = "all";
   function inMatrix(rt){
     if(curMatrix==="all") return true;
@@ -1201,7 +1194,7 @@ ${code}
     return mx && mx.mods && mx.mods.indexOf(rt.mod) >= 0;
   }
 
-  document.getElementById("count").textContent = ROUTINES.length + " Calculations · 7 Modules · Offline";
+  document.getElementById("count").textContent = ROUTINES.length + " Calculations · " + MODULES.length + " Modules · Offline";
 
   function matches(rt){
     if(!inMatrix(rt)) return false;
