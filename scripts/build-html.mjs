@@ -1224,7 +1224,7 @@ ${code}
       var h = el("div","modhead"); h.style.setProperty("--mi", m.ink);
       h.appendChild(el("span","sw"));
       h.appendChild(el("h2", null, m.name));
-      h.appendChild(el("span","n", rs.length + (rs.length===1?" Routine":" Routines")));
+      h.appendChild(el("span","n", rs.length + " " + (tier==="advanced"?"Advanced":tier==="routine"?"Routine":(rs.length===1?"Routine":"Routines"))));
       h.appendChild(el("p", null, m.blurb));
       list.appendChild(h);
       rs.forEach(function(r){ list.appendChild(card(r)); });
@@ -1236,7 +1236,7 @@ ${code}
       var h = el("div","modhead");
       h.appendChild(el("span","sw"));
       h.appendChild(el("h2", null, "Unfiled"));
-      h.appendChild(el("span","n", orphans.length + " Routines"));
+      h.appendChild(el("span","n", orphans.length + " " + (tier==="advanced"?"Advanced":tier==="routine"?"Routine":"Routines")));
       h.appendChild(el("p", null, "Registered against a module that does not exist — a taxonomy fault, shown rather than hidden."));
       list.appendChild(h);
       orphans.forEach(function(r){ list.appendChild(card(r)); });
