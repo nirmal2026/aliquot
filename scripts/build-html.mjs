@@ -854,6 +854,8 @@ ${code}
     var o=""; for(var i=0;i<t.length;i++){ o += (t.charCodeAt(i) < 256 ? t.charAt(i) : "?"); }
     return o;
   }
+  function modName(id){ var m=MODULES.filter(function(x){return x.id===id;})[0]; return m?m.name:id; }
+
   function makePdf(rt, lr, fname, an, lab){
     var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
     if(!jsPDFctor) return null;
@@ -888,7 +890,7 @@ ${code}
     // Title
     wrap(rt.name, 15, true); y+=2;
     doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(90);
-    wrap("Envicron \u00b7 "+rt.id+" / "+rt.mod+" \u00b7 "+localStamp(), 9);
+    wrap("Envicron \u00b7 "+modName(rt.mod)+" \u00b7 "+localStamp(), 9);
     doc.setTextColor(0); y+=4; line();
     // Header block
     if(lab) kv("Laboratory", lab);
@@ -911,6 +913,11 @@ ${code}
       kv("  "+(r.label||""), (r.value!=null?r.value:"")+(r.unit?" "+r.unit:""));
     });
     y+=8; line();
+    // Reference method / citation
+    wrap("Reference method", 11, true); y+=2;
+    doc.setFontSize(9); doc.setTextColor(70);
+    wrap(rt.ref, 9);
+    doc.setTextColor(0); y+=8; line();
     doc.setFontSize(9); doc.setTextColor(70);
     wrap("A calculation aid, not a validated method. ISO/IEC 17025 \u00a77.11.2 applies: verify before use. "
        + "A personal project \u2014 not a product of, and not endorsed by, any organisation or employer. "
@@ -924,7 +931,7 @@ ${code}
   function reportText(rt, lr, fname, an, lab){
     var L = [];
     L.push((fname||rt.name));
-    L.push(rt.name + "  [" + rt.id + " / " + rt.mod + "]");
+    L.push(rt.name + "  —  " + modName(rt.mod));
     L.push("Envicron " + BUILD + " · " + localStamp());
     if(lab) L.push("Laboratory: " + lab);
     if(an)  L.push("Analyst: " + an);
@@ -945,6 +952,9 @@ ${code}
       var line = "  " + (r.label||"") + ": " + (r.value!=null?r.value:"") + (r.unit?" "+r.unit:"");
       L.push(line.replace(/\\s+$/,""));
     });
+    L.push("");
+    L.push("REFERENCE METHOD");
+    L.push("  " + rt.ref);
     L.push("");
     L.push("A calculation aid, not a validated method (ISO/IEC 17025 §7.11.2). Verify against the cited standard.");
     return L.join("\\n");
@@ -1214,7 +1224,7 @@ ${code}
       var h = el("div","modhead"); h.style.setProperty("--mi", m.ink);
       h.appendChild(el("span","sw"));
       h.appendChild(el("h2", null, m.name));
-      h.appendChild(el("span","n", rs.length + (rs.length===1?" routine":" routines")));
+      h.appendChild(el("span","n", rs.length + (rs.length===1?" Routine":" Routines")));
       h.appendChild(el("p", null, m.blurb));
       list.appendChild(h);
       rs.forEach(function(r){ list.appendChild(card(r)); });
@@ -1226,7 +1236,7 @@ ${code}
       var h = el("div","modhead");
       h.appendChild(el("span","sw"));
       h.appendChild(el("h2", null, "Unfiled"));
-      h.appendChild(el("span","n", orphans.length + " routines"));
+      h.appendChild(el("span","n", orphans.length + " Routines"));
       h.appendChild(el("p", null, "Registered against a module that does not exist — a taxonomy fault, shown rather than hidden."));
       list.appendChild(h);
       orphans.forEach(function(r){ list.appendChild(card(r)); });
